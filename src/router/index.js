@@ -12,7 +12,6 @@ export default new Router({
       name: 'graph',
       component: Graph
     }
-    
     ,
     {
       path: '/',

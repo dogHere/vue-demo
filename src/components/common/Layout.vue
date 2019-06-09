@@ -52,8 +52,8 @@ export default {
           key: 'graph',
           icon: 'dashboard',
           title: '图可视化'
-        },
-        
+        }
+        ,
         {
           key: 'index',
           icon: 'project',
