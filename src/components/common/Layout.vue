@@ -40,6 +40,7 @@
   </a-layout>
 </template>
 <script>
+
 export default {
   name: 'Layout',
   props: ['pageHeader', 'activeItem'],
@@ -48,8 +49,13 @@ export default {
       collapsed: true,
       menuItems: [
         {
-          key: 'index',
+          key: 'graph',
           icon: 'dashboard',
+          title: '图可视化'
+        },
+        {
+          key: 'index',
+          icon: 'project',
           title: '概览'
         },
         {
