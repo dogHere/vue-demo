@@ -18,7 +18,7 @@
                 placement="bottomLeft"
               >
             
-                <a-button  type="primary" @click="helloworld" > 显示一个点 </a-button>
+                <a-button  type="primary" > 显示一个点 </a-button>
                
                <template slot="content">
                   <a-input placeholder="clusterId"></a-input><br/> <br/>
@@ -34,7 +34,7 @@
                 trigger="click"
                 placement="bottomLeft"
               >
-                <a-button  type="primary" @click="helloworld" > 图配置 </a-button>
+                <a-button  type="primary" > 图配置 </a-button>
                 <template slot="content">
                     physics: <a-switch defaultUnChecked @change="changeGraphEnablePhysics"   /> <br/>
                     levelSeparation: <a-slider :defaultValue="200" :max="1500" :min="100" @change="changeLevelSeparation"   /> 
@@ -58,9 +58,9 @@
           </div>
            <div id="graph-wrapper"  >
               <network class="network" ref="network"
-                :nodes = "nodes"
-                :edges = "edges"
-                :options="options">
+                :nodes = "network.nodes"
+                :edges = "network.edges"
+                :options="network.options">
               </network>
             </div>
     </layout>
@@ -69,10 +69,10 @@
 
 <script>
 import Vue from 'vue'
-import {Network} from 'vue2vis'
+import Network from '../common/network/Network'
 import Layout from '../common/Layout'
 import HeaderGroup from '../common/HeaderGroup'
-import "vue2vis/dist/vue2vis.css";
+import 'vis/dist/vis.min.css';
 
 Vue.component('network', Network);
 
@@ -122,68 +122,61 @@ export default {
     Layout,
     HeaderGroup
   },
-  data () {
-    return {
-      options ,
-      nodes:[
-        {id: 1, label: 'Node 1'},
-    {id: 2, label: 'Node 2'},
-    {id: 3, label: 'Node 3'},
-    {id: 4, label: 'Node 4'},
-    {id: 5, label: 'Node 5'}
-      ],
-      edges:[
- {from: 1, to: 3},
-    {from: 1, to: 2},
-    {from: 2, to: 4},
-    {from: 2, to: 5},
-    {from: 3, to: 3}
-      ]
-    }
-  },
+  data: () =>({
+      network:{
+        options ,
+              nodes:[
+                {id: 1, label: 'Node 1'},
+            {id: 2, label: 'Node 2'},
+            {id: 3, label: 'Node 3'},
+            {id: 4, label: 'Node 4'},
+            {id: 5, label: 'Node 5'}
+              ],
+              edges:[
+               {from: 1, to: 3},
+            {from: 1, to: 2},
+            {from: 2, to: 4},
+            {from: 2, to: 5},
+            {from: 3, to: 3}
+              ]
+      }
+  }),
+
+ 
   methods: {
     helloworld(){
-      this.nodes.push({
-        id:++this.nowId,label:'haha'+this.nowId
-      })
-      this.edges.push({
-        from:6, to:1
-      })
+     
     },
 
     changeGraphEnablePhysics(newValue){
-      console.log("changeGraphEnablePhysics",options,newValue,options.physics.enabled)
-      if(newValue!==options.physics.enabled){
-           options.physics.enabled = newValue;
+      if(newValue!==this.network.options.physics.enabled){
+           this.network.options.physics.enabled = newValue;
       }
     },
 
     changeLevelSeparation(newValue){
-      if(options.layout&&options.layout.hierarchical){  
-         options.layout.hierarchical.levelSeparation = newValue
+      if(this.network.options.layout&&this.network.options.layout.hierarchical){  
+         this.network.options.layout.hierarchical.levelSeparation = newValue
       }
     },
 
     changeNodeSpacing(newValue){
-      if(options.layout&&options.layout.hierarchical){
-          options.layout.hierarchical.nodeSpacing = newValue 
+      if(this.network.options.layout&&this.network.options.layout.hierarchical){
+          this.network.options.layout.hierarchical.nodeSpacing = newValue 
       }
     },
 
     changeTreeSpacing(newValue){
-      if(options.layout&&options.layout.hierarchical){
-          options.layout.hierarchical.treeSpacing = newValue
+      if(this.network.options.layout&&this.network.options.layout.hierarchical){
+          this.network.options.layout.hierarchical.treeSpacing = newValue
       }
     },
 
     changeDirection(newValue){
-      if(options.layout&&options.layout.hierarchical){
-        options.layout.hierarchical.direction = newValue
+      if(this.network.options.layout&&this.network.options.layout.hierarchical){
+        this.network.options.layout.hierarchical.direction = newValue
       }
     },
-    getOptions(){
-      return options
-    }
   },
   created() {
     

@@ -53,6 +53,7 @@ export default {
           icon: 'dashboard',
           title: '图可视化'
         },
+        
         {
           key: 'index',
           icon: 'project',
