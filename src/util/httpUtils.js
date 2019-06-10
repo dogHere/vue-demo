@@ -10,7 +10,7 @@ function axiosRequst(options) {
     if (arg) {
       url = `${url}?${arg}`;
     }
-    console.log("axiosRequst to ",url);
+    // console.log("axiosRequst to ",url);
     if (type === 'get') {
       return  axios.get(url);
     }else{

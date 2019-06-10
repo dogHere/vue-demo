@@ -8,6 +8,7 @@
                 <a-input class="jobIdSet" placeholder="jobId" @change="setNowJobId"></a-input>
 
                 <a-button  type="primary" @click="startV" :disabled="!nowClicked" >开始运行</a-button>
+                <a-button  type="primary" @click="succeedV" :disabled="!nowClicked" >标记成功</a-button>
                 <a-button  type="primary" @click="stopV" :disabled="!nowClicked" >停止运行</a-button>
                 <a-button  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
 
@@ -162,13 +163,13 @@ export default {
 
     ,
     countDown(){
-      console.log('call countDown')
+      // console.log('call countDown')
       if(!this.nowJobIdExists||this.nowFlushStart){
           return
       }
-      console.log('countDown nowCountDown',this.nowCountDown)
+      // console.log('countDown nowCountDown',this.nowCountDown)
       if(this.nowCountDown){
-        console.log('countDown clear nowCountDown')
+        // console.log('countDown clear nowCountDown')
         clearInterval(this.nowCountDown)
       }
       this.nowFlushStart = true
@@ -182,7 +183,7 @@ export default {
                   this.reflushTotalTime=30
               }
               this.reflushTotalTime--
-              this.reflushContent = this.reflushTotalTime + 's后刷新节点状态'
+              this.reflushContent = this.reflushTotalTime + 's后刷新状态'
             }
             
         },1100)
@@ -203,7 +204,7 @@ export default {
       this.reset()
       if(jobId){
           this.nowJobId = jobId;
-          console.log("jobId",jobId)
+          // console.log("jobId",jobId)
           this.initShow()
       }
     },
@@ -404,7 +405,7 @@ export default {
     },
     addSelectListen(){
         this.$refs.commonGraph.getNetwork().on('click',(parms)=>{
-          console.log('click ',parms)
+          // console.log('click ',parms)
           if(parms&&parms.nodes&&parms.nodes.length>0){
             const v = parms.nodes[0];
             this.nowClicked = this.str2Task(v)
@@ -418,7 +419,7 @@ export default {
             }
           
             this.nowSelected = parms.nodes.map(k=>this.str2Task(k)).filter(k=>k!=null)
-            console.log('this.nowClicked',this.nowClicked,'this.nowSelected',this.nowSelected,'nowClicked task info ',this.registerTasks[v])
+            // console.log('this.nowClicked',this.nowClicked,'this.nowSelected',this.nowSelected,'nowClicked task info ',this.registerTasks[v])
           }else{
             this.nowClicked = null;
             this.nowShowData = null;
@@ -447,7 +448,7 @@ export default {
         if(!mode){
           mode = 'add'
         }
-        console.log('data',data)
+        // console.log('data',data)
         this.registerTheTasks(data)
         this.renderTheGraph(data,mode)
         let graph = _.get(data,'data.data.graph');
@@ -504,7 +505,7 @@ export default {
               }
           })    
         }else{
-            this.updateThisJobIdStatus(!graphRoot||graphRoot.v.length===0)
+            this.updateThisJobIdStatus(graphRoot&&graphRoot.v&&graphRoot.v.length>0)
         }
           
       })
@@ -534,7 +535,7 @@ export default {
     },
 
     showDownstream(nowClicked){
-      console.log('show downstream ',nowClicked)
+      // console.log('show downstream ',nowClicked)
       let ids = null;
       if(nowClicked&&nowClicked.clusterId&&nowClicked.dagId&&nowClicked.taskId){
         ids = nowClicked
@@ -601,7 +602,7 @@ export default {
       }
     },
     showPath(nowSelected,thenDo){
-      console.log('showPath',nowSelected)  
+      // console.log('showPath',nowSelected)  
 
       let ids =  null;
       if(nowSelected&&Array.isArray(nowSelected)&&nowSelected.length>=2){
@@ -627,7 +628,7 @@ export default {
       }else{
         ids = this.showVData
       }
-      console.log(ids,'showVData')
+      // console.log(ids,'showVData')
       const {clusterId,dagId,taskId} = ids;
       if(this.nowJobId  && clusterId && dagId && taskId ){
         axiosRequst({
@@ -669,6 +670,18 @@ export default {
       if(this.nowJobId&&this.nowClicked){
         axiosRequst({
                 path: '/data/back/edit/job/status/pause/node',
+                params: {
+                  jobId:this.nowJobId,
+                  ... this.nowClicked
+                },
+                type:'post'
+        }).then(this.dealResponse)
+      }
+    },
+    succeedV(){
+      if(this.nowJobId&&this.nowClicked){
+        axiosRequst({
+                path: '/data/back/edit/job/status/succeed/node',
                 params: {
                   jobId:this.nowJobId,
                   ... this.nowClicked
