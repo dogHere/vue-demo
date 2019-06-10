@@ -114,6 +114,12 @@ export default {
         return this.$refs.network;
     },
 
+
+    clearAll(){
+        this.network.nodes.clear()
+        this.network.edges.clear()
+    },
+
     update(graph,mode,vCallback,eCallback){
       if(!mode){
         mode = 'add';
@@ -185,6 +191,14 @@ export default {
       }else{
         this.network.edges.remove(updateE)
       }
+
+      if(updateV.length>0){
+        this.network.nodes.update(updateV[0])
+      }
+      if(updateE.length>0){
+        this.network.edges.update(updateE[0])
+      }
+
     },
 
     changeGraphEnablePhysics(newValue){
@@ -226,17 +240,23 @@ export default {
 <style lang="scss">
 .search-group{
   background-color: rgb(240, 242, 245);
-  height: 50px;
+  height: 20%;
   display: flex;
   flex-direction: row-reverse;
   padding-right: 10px;
   padding-top: 10px;
+  flex-wrap: wrap;
 }
 
 .wrapper{
     button,input,span{
         margin-right:10px;
-    }
+        margin-bottom:5px;
+        margin-top:3px;
+    };
+    display: flex;
+    flex-wrap: wrap;
+    
 }
 #graph-wrapper .network{
   width:100%;

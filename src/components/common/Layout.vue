@@ -54,31 +54,31 @@ export default {
           title: '图可视化'
         }
         ,
-        {
-          key: 'index',
-          icon: 'project',
-          title: '概览'
-        },
-        {
-          key: 'develop',
-          icon: 'rocket',
-          title: '开发',
-        },
-        {
-          key: 'urls',
-          icon: 'appstore',
-          title: 'url列表'
-        },
-        {
-          key: 'projects',
-          icon: 'project',
-          title: '工程'
-        },
-        {
-          key: 'publish',
-          icon: 'cluster',
-          title: '发布'
-        }
+        // {
+        //   key: 'index',
+        //   icon: 'project',
+        //   title: '概览'
+        // },
+        // {
+        //   key: 'develop',
+        //   icon: 'rocket',
+        //   title: '开发',
+        // },
+        // {
+        //   key: 'urls',
+        //   icon: 'appstore',
+        //   title: 'url列表'
+        // },
+        // {
+        //   key: 'projects',
+        //   icon: 'project',
+        //   title: '工程'
+        // },
+        // {
+        //   key: 'publish',
+        //   icon: 'cluster',
+        //   title: '发布'
+        // }
       ]
     }
   },

@@ -7,21 +7,24 @@
                 <template slot="header">
                 <a-input class="jobIdSet" placeholder="jobId" @change="setNowJobId"></a-input>
 
-                <a-button  type="primary" @click="showAll"  > 显示全部任务 </a-button>
-                <a-button  type="primary" @click="showRoot" > 显示根节点 </a-button>
-                <a-button  type="primary" @click="showFailed" > 显示失败任务 </a-button>
-                <a-button  type="primary" @click="showUpstream" > 显示选中节点上游 </a-button>
-                <a-button  type="primary" @click="showDownstream" > 显示选中节点下游</a-button>
-                <a-button  type="primary" @click="showRunning" > 显示在运行 </a-button>
-                <a-button  type="primary" @click="showNotRunningTop" > 显示未运行最上层 </a-button>
-                <a-button  type="primary" @click="showPath" > 显示两节点之间路径 </a-button>
+                <a-button  type="primary" @click="startV" :disabled="!nowClicked" >开始运行</a-button>
+                <a-button  type="primary" @click="stopV" :disabled="!nowClicked" >停止运行</a-button>
+                <a-button  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
+
+                <a-button  type="primary" @click="showRoot" :disabled="!nowJobIdExists">显示根节点</a-button>
+                <a-button  type="primary" @click="showFailed" :disabled="!nowJobIdExists">显示失败</a-button>
+                <a-button  type="primary" @click="showUpstream" :disabled="!nowJobIdExists||!nowClicked">显示节点上游</a-button>
+                <a-button  type="primary" @click="showDownstream" :disabled="!nowJobIdExists||!nowClicked">显示节点下游</a-button>
+                <a-button  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
+                <a-button  type="primary" @click="showNotRunningTop" :disabled="!nowJobIdExists">显示未运行最上层</a-button>
+                <a-button  type="primary" @click="showPath" :disabled="!nowJobIdExists|| !nowSelected || nowSelected.length<2">显示两点间路径</a-button>
                 <a-popover
                   title="显示一个点"
                   trigger="click"
                   placement="bottomLeft"
                 >
             
-                <a-button  type="primary" > 显示一个点 </a-button>
+                <a-button  type="primary" :disabled="!nowJobIdExists"> 显示一个点 </a-button>
                     <template slot="content">
                         <a-input placeholder="clusterId" v-model="inputClusterId"></a-input><br/> <br/>
                         <a-input placeholder="dagId"    v-model="inputDagId" ></a-input><br/> <br/>
@@ -30,10 +33,14 @@
                     </template>
               </a-popover>
                 </template>
-                
+              
               <template slot="status">
                 <div >
-                  
+                  <br/>
+                  <div class="nowJobIdStatus">
+                    
+                    {{nowJobIdStatus===null?"":nowJobIdStatus}}
+                  </div>
                   <div class="nowShowData" v-for="key in Object.keys(nowShowData===null?{}:nowShowData)">
                       <font color="red">{{key}}:</font>     {{nowShowData[key]}}
                   </div>
@@ -72,6 +79,7 @@ Date.prototype.format = function(fmt) {
     return fmt; 
 } 
 
+
 export default {
  name: 'Graph',
   components: {
@@ -90,8 +98,25 @@ export default {
       inputDagId:null,
       inputTaskId:null,
       nowShowData:null,
+      nowJobIdStatus:null,
+      nowJobIdExists:null,
+      reflushContent:"刷新节点状态",
+      reflushTotalTime:30,
+      nowFlushStart:false,
+      nowCountDown:null
     }
   },
+  // watch: {
+  //   nowJobIdExists:{
+  //     handler(o){
+  //       if(!this.nowJobIdExists&&this.nowCountDown)
+  //       {
+  //          console.log('clearInterval in watch')
+  //          clearInterval(this.nowCountDown)
+  //       }
+  //     }
+  //   }
+  // },
   computed: {
     showVData(){
       return {
@@ -102,7 +127,26 @@ export default {
     },
   },  
   methods: {
-    
+        
+    reset(){
+      this.$refs.commonGraph.clearAll()
+      this.nowJobId = null;
+      this.registerV = {};
+      this.registerVCnt= 1;
+      this.registerTasks = {}
+      this.nowSelected=[]
+      this.nowClicked = null
+      this.inputClusterId =null
+      this.inputDagId = null
+      this.inputTaskId = null
+      this.nowShowData = null
+      this.nowJobIdStatus =null
+      this.nowJobIdExists =null
+
+      this.reflushContent = "刷新节点状态"
+      this.reflushTotalTime = 30
+      this.nowFlushStart = false
+    },
     str2Task(str){
       if(str){
         const arr = str.split('@')
@@ -115,13 +159,52 @@ export default {
         return null;
       }
     }
+
+    ,
+    countDown(){
+      console.log('call countDown')
+      if(!this.nowJobIdExists||this.nowFlushStart){
+          return
+      }
+      console.log('countDown nowCountDown',this.nowCountDown)
+      if(this.nowCountDown){
+        console.log('countDown clear nowCountDown')
+        clearInterval(this.nowCountDown)
+      }
+      this.nowFlushStart = true
+      let clock = setInterval(() => {
+            if(!this.nowJobIdExists&&this.nowCountDown){
+                this.reflushContent = "刷新节点状态"
+                
+            }else{
+              if(this.reflushTotalTime==0){
+                  this.reflushTaskStatus()
+                  this.reflushTotalTime=30
+              }
+              this.reflushTotalTime--
+              this.reflushContent = this.reflushTotalTime + 's后刷新节点状态'
+            }
+            
+        },1100)
+        this.nowCountDown = clock
+    }
+    ,
+    reflushTaskStatus(){
+        console.log('reflushTaskStatus...')
+        if(this.registerV){
+          Object.keys(this.registerV).forEach(v=>{
+            this.showV(this.str2Task(v))
+          })
+        }
+    }
     ,
     setNowJobId(data){
       const jobId=Number.parseInt(data.target.value)
-
+      this.reset()
       if(jobId){
           this.nowJobId = jobId;
           console.log("jobId",jobId)
+          this.initShow()
       }
     },
     helloworld(data){
@@ -166,7 +249,16 @@ export default {
         }  
         if(key === 'priority'){
           return true
-        }   
+        } 
+        if(key === 'sourceClusterId'){
+          return true
+        }  
+        if(key === 'sourceDagId'){
+          return true
+        }  
+        if(key === 'sourceTaskId'){
+          return true
+        }    
         return false
         
     }
@@ -216,8 +308,12 @@ export default {
     ,
 
     dealColor(task){
+        
         if(!task){
           return 'rgb(255,168,7)';
+        }
+        if(task.priority>2){
+          return '#7d8791';
         }
         if (task.dagStatus === 0) {
           return '#f0fbff';
@@ -234,6 +330,60 @@ export default {
         return 'rgb(255,168,7)';
     }
     ,
+    dealPriority(priority){
+        if(!priority){
+          return ""
+        }
+
+    }
+    ,
+    convertToStatus(task){
+      if(!task){
+        return {}
+      }
+      let res = {}
+      Object.keys(task).forEach(t=>{
+        if(this.dealShowStatus(t)){
+           if(t==='dagStatus'){
+                res['状态'] = this.dealStatus(task[t])
+            }else if(t==='upperDagNum'){
+                res['上游task数'] = task[t];
+            }else if(t==='upperDagSuccessNum'){
+                res['上游成功task数'] = task[t];
+            }else if(t==='id'){
+                res['id'] = task[t];
+            }else if(t==='startTime'){
+                res['开始时间'] = this.dealUinxtime(task[t]);
+            }else if(t==='endTime'){
+                res['结束时间'] = this.dealUinxtime(task[t]);
+            }else if(t==='executionClient'){
+                res['运行方式'] = task[t];
+            }else if(t === 'priority'){
+                res['优先级'] = task[t];
+            }else if(t === 'sourceClusterId'){
+                res['clusterId'] = task[t];
+            }else if(t === 'sourceDagId'){
+                res['dagId'] = task[t];
+            }else if(t === 'sourceTaskId'){
+                res['taskId'] = task[t];
+            }
+        }
+      })
+      return res;
+    }
+    ,
+    convertToTitle(task){
+        if(!task){
+          return "";
+        }
+        const res = this.convertToStatus(task)
+        let title = "";
+        Object.keys(res).forEach(k=>{
+            title=title+k+":"+res[k]+"<br/>";
+        })
+        return title;
+    }
+    ,
     dealV (v){
       this.register(v)
       const task = this.registerTasks[v]
@@ -241,16 +391,17 @@ export default {
             id:v
         ,label:this.getId(v)+"" 
         ,color:this.dealColor(task)
+        ,title:this.convertToTitle(task)
       }
     },
 
     dealE (e){
-                  return {
-                    id:   e.source.key+"->"+e.dest.key, 
-                    from: e.source.key,
-                    to:   e.dest.key
-                  }
-                },
+      return {
+        id:   e.source.key+"->"+e.dest.key, 
+        from: e.source.key,
+        to:   e.dest.key
+      }
+    },
     addSelectListen(){
         this.$refs.commonGraph.getNetwork().on('click',(parms)=>{
           console.log('click ',parms)
@@ -262,57 +413,103 @@ export default {
             if(v){
               const task = this.registerTasks[v]
               if(task){
-                Object.keys(task).forEach(t=>{
-                    if(this.dealShowStatus(t)){
-                      if(t==='dagStatus'){
-                          this.nowShowData['状态'] = this.dealStatus(task[t])
-                      }else if(t==='upperDagNum'){
-                          this.nowShowData['上游task数'] = task[t];
-                      }else if(t==='upperDagSuccessNum'){
-                          this.nowShowData['上游成功task数'] = task[t];
-                      }else if(t==='id'){
-                          this.nowShowData['taskId'] = task[t];
-                      }else if(t==='startTime'){
-                          this.nowShowData['开始时间'] = this.dealUinxtime(task[t]);
-                      }else if(t==='endTime'){
-                          this.nowShowData['结束时间'] = this.dealUinxtime(task[t]);
-                      }else if(t==='executionClient'){
-                          this.nowShowData['运行方式'] = task[t];
-                      }else if(t === 'priority'){
-                          this.nowShowData['优先级'] = task[t];
-                      }
-                    }
-                })
+                Object.assign(this.nowShowData,this.convertToStatus(task))
               }
             }
-            
-
+          
             this.nowSelected = parms.nodes.map(k=>this.str2Task(k)).filter(k=>k!=null)
             console.log('this.nowClicked',this.nowClicked,'this.nowSelected',this.nowSelected,'nowClicked task info ',this.registerTasks[v])
+          }else{
+            this.nowClicked = null;
+            this.nowShowData = null;
           }
         })
-    } ,           
-    dealResponse(data,mode){
-        if(!mode){
-          mode = 'add'
-        }
-        console.log('data',data)
+    } ,    
+    registerTheTasks(data){
         let tasks = _.get(data,'data.data.tasks')
         if(tasks){
           Object.keys(tasks).forEach((task)=>{
             this.registerTasks[task] = tasks[task];
           })
         }
+    }       ,
+    renderTheGraph(data,mode){
         let graph = _.get(data,'data.data.graph');
-        if(graph){
+        if(graph&&this.$refs.commonGraph){
             this.$refs.commonGraph.update({
                 v:graph.v,
                 e:graph.e,
             },mode,this.dealV,this.dealE)
             this.addSelectListen()
         }
-
     },
+    dealResponse(data,thenDo,mode){
+        if(!mode){
+          mode = 'add'
+        }
+        console.log('data',data)
+        this.registerTheTasks(data)
+        this.renderTheGraph(data,mode)
+        let graph = _.get(data,'data.data.graph');
+        if(thenDo){
+          thenDo()
+        }
+    },
+    updateThisJobIdStatus(status){
+        if(!status){
+                this.nowJobIdStatus = "该jobId:"+this.nowJobId+" 不存在"
+                this.nowJobIdExists = false;
+        }else{
+              this.nowJobIdStatus = "当前jobId:"+this.nowJobId;
+              this.nowJobIdExists = true;
+              this.countDown()
+        }
+    },
+    initShow(){
+      axiosRequst({
+                path: '/data/back/edit/job/show/root',
+                params: {
+                  jobId:this.nowJobId,
+                  rootOnly:true
+                },
+                type:'post'
+      }).then(data=>{
+        this.registerTheTasks(data)
+        this.renderTheGraph(data)
+        let graphRoot = _.get(data,'data.data.graph');
+        if(graphRoot&&graphRoot.v&&graphRoot.v.length>0){
+          this.updateThisJobIdStatus(true)
+          axiosRequst({
+                        path: '/data/back/edit/job/show/running',
+                        params: {
+                          jobId:this.nowJobId,
+                        },
+                        type:'post'
+          }).then(data=>{
+              this.registerTheTasks(data)
+              this.renderTheGraph(data)
+
+              let graph = _.get(data,'data.data.graph');
+
+              if(graph&&graph.v){
+                 
+                 graph.v.forEach(sv=>{
+                   graphRoot.v.forEach(rootV=>{
+                      this.showPath([this.str2Task(sv),this.str2Task(rootV)],()=>{
+                        this.showDownstream(this.str2Task(sv))
+                      })
+                      
+                   })
+                 })
+              }
+          })    
+        }else{
+            this.updateThisJobIdStatus(!graphRoot||graphRoot.v.length===0)
+        }
+          
+      })
+    }
+    ,
     showAll(){
       if(this.nowJobId){
         axiosRequst({
@@ -336,13 +533,20 @@ export default {
       }
     },
 
-    showDownstream(){
-      if(this.nowJobId&&this.nowClicked){
+    showDownstream(nowClicked){
+      console.log('show downstream ',nowClicked)
+      let ids = null;
+      if(nowClicked&&nowClicked.clusterId&&nowClicked.dagId&&nowClicked.taskId){
+        ids = nowClicked
+      }else{
+        ids = this.nowClicked
+      }
+      if(this.nowJobId&&ids){
         axiosRequst({
                 path: '/data/back/edit/job/show/downstream',
                 params: {
                   jobId:this.nowJobId,
-                  ... this.nowClicked
+                  ... ids
                 },
                 type:'post'
         }).then(this.dealResponse)
@@ -396,30 +600,80 @@ export default {
         }).then(this.dealResponse)
       }
     },
-    showPath(){
-      if(this.nowJobId&&this.nowSelected&&this.nowSelected.length>=2){
+    showPath(nowSelected,thenDo){
+      console.log('showPath',nowSelected)  
+
+      let ids =  null;
+      if(nowSelected&&Array.isArray(nowSelected)&&nowSelected.length>=2){
+            ids = nowSelected
+        }else{
+            ids=this.nowSelected
+        }
+      if(this.nowJobId&&ids&&ids.length>=2){
         axiosRequst({
                 path: '/data/back/edit/job/show/path',
                 params: {
                   jobId:this.nowJobId,
                 },
                 type:'post',
-                data:this.nowSelected
-        }).then(this.dealResponse)
+                data:ids
+        }).then((data)=>this.dealResponse(data,thenDo))
       }
     },
-    showV(){
-      console.log(this.showVData,'showVData')
-      const {clusterId,dagId,taskId} = this.showVData;
+    showV(showVData){
+      let ids = null;
+      if(showVData&&showVData.clusterId){
+        ids = showVData
+      }else{
+        ids = this.showVData
+      }
+      console.log(ids,'showVData')
+      const {clusterId,dagId,taskId} = ids;
       if(this.nowJobId  && clusterId && dagId && taskId ){
         axiosRequst({
                 path: '/data/back/edit/job/show/v',
                 params: {
                   jobId:this.nowJobId,
-                  ...  this.showVData
+                  ...  ids
                 },
                 type:'post',
                 
+        }).then(this.dealResponse)
+      }
+    },
+    startV(){
+      if(this.nowJobId&&this.nowClicked){
+        axiosRequst({
+                path: '/data/back/edit/job/status/start/node',
+                params: {
+                  jobId:this.nowJobId,
+                  ... this.nowClicked
+                },
+                type:'post'
+        }).then(this.dealResponse)
+      }
+    },
+    stopV(){
+      if(this.nowJobId&&this.nowClicked){
+        axiosRequst({
+                path: '/data/back/edit/job/status/stop/node',
+                params: {
+                  jobId:this.nowJobId,
+                  ... this.nowClicked
+                },
+                type:'post'
+        }).then(this.dealResponse)
+      }
+    },
+    pauseV(){
+      if(this.nowJobId&&this.nowClicked){
+        axiosRequst({
+                path: '/data/back/edit/job/status/pause/node',
+                params: {
+                  jobId:this.nowJobId,
+                  ... this.nowClicked
+                },
+                type:'post'
         }).then(this.dealResponse)
       }
     },
