@@ -242,18 +242,23 @@ export default {
   background-color: rgb(240, 242, 245);
   height: 20%;
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   padding-right: 10px;
   padding-top: 10px;
   flex-wrap: wrap;
+   padding-top: 10px;
+   padding-bottom: 3px;
+   padding-left: 10px;
+   padding-right: 10px;
+
 }
 
 .wrapper{
-    button,input,span{
-        margin-right:10px;
-        margin-bottom:5px;
-        margin-top:3px;
-    };
+    // button,input,span,i,div{
+    //     margin-right:10px;
+    //     margin-bottom:5px;
+    //     margin-top:5px;
+    // };
     display: flex;
     flex-wrap: wrap;
     

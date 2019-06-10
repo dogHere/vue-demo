@@ -5,34 +5,58 @@
 
         <CommonGraph ref="commonGraph" >
                 <template slot="header">
-                <a-input class="jobIdSet" placeholder="jobId" @change="setNowJobId"></a-input>
+                <a-input class="jobIdSet inputItem"  placeholder="jobId" @change="setNowJobId" ></a-input>
+                <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>开始运行</span>
+                      </template>
+                      <a-icon  class="iconItem"  @click="startV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':''"  type="play-circle"   ></a-icon>
+                </a-tooltip>
+                <!--
+                <a-button class="buttonItem" type="primary" @click="succeedV" :disabled="!nowClicked" >标记成功</a-button>
+                -->
+                <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>标记成功</span>
+                      </template>
+                      <a-icon  class="iconItem"  @click="succeedV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: green;'"  type="check"   ></a-icon>
+                </a-tooltip>
 
-                <a-button  type="primary" @click="startV" :disabled="!nowClicked" >开始运行</a-button>
-                <a-button  type="primary" @click="succeedV" :disabled="!nowClicked" >标记成功</a-button>
-                <a-button  type="primary" @click="stopV" :disabled="!nowClicked" >停止运行</a-button>
-                <a-button  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
+                <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>停止运行</span>
+                      </template>
+                      <a-icon  class="iconItem"  @click="stopV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: #f8666e;'"  type="close-circle"   ></a-icon>
+                </a-tooltip>
+                <!--
+                <a-button class="buttonItem"  type="primary" @click="stopV" :disabled="!nowClicked" >停止运行</a-button>
+                -->
+                <a-button class="buttonItem"  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
 
-                <a-button  type="primary" @click="showRoot" :disabled="!nowJobIdExists">显示根节点</a-button>
-                <a-button  type="primary" @click="showFailed" :disabled="!nowJobIdExists">显示失败</a-button>
-                <a-button  type="primary" @click="showUpstream" :disabled="!nowJobIdExists||!nowClicked">显示节点上游</a-button>
-                <a-button  type="primary" @click="showDownstream" :disabled="!nowJobIdExists||!nowClicked">显示节点下游</a-button>
-                <a-button  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
-                <a-button  type="primary" @click="showNotRunningTop" :disabled="!nowJobIdExists">显示未运行最上层</a-button>
-                <a-button  type="primary" @click="showPath" :disabled="!nowJobIdExists|| !nowSelected || nowSelected.length<2">显示两点间路径</a-button>
-                <a-popover
-                  title="显示一个点"
-                  trigger="click"
-                  placement="bottomLeft"
-                >
-            
-                <a-button  type="primary" :disabled="!nowJobIdExists"> 显示一个点 </a-button>
-                    <template slot="content">
-                        <a-input placeholder="clusterId" v-model="inputClusterId"></a-input><br/> <br/>
-                        <a-input placeholder="dagId"    v-model="inputDagId" ></a-input><br/> <br/>
-                        <a-input placeholder="taskId"   v-model="inputTaskId" ></a-input><br/> <br/>
-                        <a-button icon="search" @click="showV" >Search</a-button>
-                    </template>
-              </a-popover>
+                <a-button class="buttonItem"  type="primary" @click="showRoot" :disabled="!nowJobIdExists">显示根节点</a-button>
+                <a-button class="buttonItem"  type="primary" @click="showFailed" :disabled="!nowJobIdExists">显示失败</a-button>
+                <a-button class="buttonItem"  type="primary" @click="showUpstream" :disabled="!nowJobIdExists||!nowClicked">显示节点上游</a-button>
+                <a-button class="buttonItem"  type="primary" @click="showDownstream" :disabled="!nowJobIdExists||!nowClicked">显示节点下游</a-button>
+                <a-button class="buttonItem"  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
+                <a-button class="buttonItem"  type="primary" @click="showNotRunningTop" :disabled="!nowJobIdExists">显示未运行最上层</a-button>
+                <a-button class="buttonItem"  type="primary" @click="showPath" :disabled="!nowJobIdExists|| !nowSelected || nowSelected.length<2">显示两点间路径</a-button>
+                <div style="display:'inline-block'">
+                    <a-popover
+                      title="显示一个点"
+                      trigger="click"
+                      placement="bottomLeft"
+                      
+                    >
+                
+                    <a-button class="buttonItem"  type="primary" :disabled="!nowJobIdExists" > 显示一个点 </a-button>
+                        <template slot="content">
+                            <a-input placeholder="clusterId" v-model="inputClusterId"></a-input><br/> <br/>
+                            <a-input placeholder="dagId"    v-model="inputDagId" ></a-input><br/> <br/>
+                            <a-input placeholder="taskId"   v-model="inputTaskId" ></a-input><br/> <br/>
+                            <a-button icon="search" @click="showV" >Search</a-button>
+                        </template>
+                  </a-popover>
+              </div>
                 </template>
               
               <template slot="status">
@@ -42,9 +66,24 @@
                     
                     {{nowJobIdStatus===null?"":nowJobIdStatus}}
                   </div>
+                  <a-card     :bodyStyle="{padding:'3px'}"
+                              :hoverable="true"
+                              class="card-warpper">
+                        <div class="cardItem">
+                          <div v-for="key in Object.keys(nowShowData===null?{}:nowShowData)"
+                              :key="key"
+                              class="item">
+                            <div class="value"><font color="red">{{ key }}</font>: {{ nowShowData[key] }}</div>
+
+                          </div>
+                        </div>
+                  </a-card>
+
+                  <!--
                   <div class="nowShowData" v-for="key in Object.keys(nowShowData===null?{}:nowShowData)">
                       <font color="red">{{key}}:</font>     {{nowShowData[key]}}
                   </div>
+                  -->
                 </div>
               </template>
               
@@ -693,7 +732,7 @@ export default {
   },
 }
 </script>
-<style scoped>
+<style scoped lang="scss">
 
 #root {
   min-width: 900px;
@@ -710,4 +749,41 @@ export default {
   display:inline-block;
   margin-right:10px;
 }
+.iconItem{
+  cursor     : pointer;
+    color    : #1890ff;
+    font-size: 200%;
+      margin-right: 10px;
+  margin-bottom: 10px;
+}
+.buttonItem{
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.inputItem{
+    margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.card-warpper {
+  width: 100%;
+}
+
+.cardItem {
+  display: flex;
+  flex-wrap: wrap;
+  .item {
+    
+    text-align: left;
+    margin-right: 30px;
+    .value {
+      font-size: 15px;
+      font-weight: 500;
+      color: #000;
+    }
+    
+  }
+}
+
+
 </style>
