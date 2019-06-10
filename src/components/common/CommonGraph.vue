@@ -127,45 +127,63 @@ export default {
       if(this.network.edges === null){
         this.network.edges = new DataSet()
       }
+      let updateV = [];
       if(graph.v){
         graph.v.forEach((v)=>{
           if(v){
             if(vCallback){
-                if(mode==='add'){
-                  this.network.nodes.update(vCallback(v))
-                }else{
-                  this.network.nodes.remove(vCallback(v))
-                }
+                 updateV.push(vCallback(v))
+                // if(mode==='add'){
+                  
+                //   this.network.nodes.update(vCallback(v))
+                // }else{
+                //   this.network.nodes.remove(vCallback(v))
+                // }
             }else{
-                if(mode === 'add'){
-                  this.network.nodes.update(v)
-                }else{
-                  this.network.nodes.remove(v)
-                }
+                 updateV.push(v)
+                // if(mode === 'add'){
+                //   this.network.nodes.update(v)
+                // }else{
+                //   this.network.nodes.remove(v)
+                // }
             }
           }
         })
       }
+      if(mode === 'add'){
+        this.network.nodes.update(updateV)
+      }else{
+        this.network.nodes.remove(updateV)
+      }
 
+     let updateE = []
      if(graph.e){
         graph.e.forEach((e)=>{
           if(e){
             if(eCallback){
-                if(mode==='add'){
-                  this.network.edges.update(eCallback(e))
-                }else{
-                  this.network.edges.remove(eCallback(e))
-                }
+                updateE.push(eCallback(e))
+                // if(mode==='add'){
+                //   this.network.edges.update(eCallback(e))
+                // }else{
+                //   this.network.edges.remove(eCallback(e))
+                // }
                 
             }else{
-                if(mode === 'add'){
-                    this.network.edges.update({id:e.from+"->"+e.to,from:e.from,to:e.to})
-                }else{
-                    this.network.edges.remove({id:e.from+"->"+e.to,from:e.from,to:e.to})
-                }
+                updateE.push({id:e.from+"->"+e.to,from:e.from,to:e.to})
+
+                // if(mode === 'add'){
+                //     this.network.edges.update({id:e.from+"->"+e.to,from:e.from,to:e.to})
+                // }else{
+                //     this.network.edges.remove({id:e.from+"->"+e.to,from:e.from,to:e.to})
+                // }
             }
           }
         })
+      }
+      if(mode === 'add'){
+        this.network.edges.update(updateE)
+      }else{
+        this.network.edges.remove(updateE)
       }
     },
 
