@@ -34,7 +34,7 @@
         </div>
       </a-layout-content>
       <a-layout-footer style="text-align: center">
-        数据平台 ©2019 Created by xianglei.ran
+        数据平台 ©2019 Created by ranxianglei
       </a-layout-footer>
     </a-layout>
   </a-layout>
@@ -49,16 +49,16 @@ export default {
       collapsed: true,
       menuItems: [
         {
-          key: 'graph',
+          key: 'graph-rerun',
           icon: 'dashboard',
-          title: '图可视化'
+          title: '级联补数-图可视化'
         }
         ,
-        // {
-        //   key: 'index',
-        //   icon: 'project',
-        //   title: '概览'
-        // },
+        {
+          key: 'table',
+          icon: 'project',
+          title: '表级别血缘-图可视化'
+        },
         // {
         //   key: 'develop',
         //   icon: 'rocket',

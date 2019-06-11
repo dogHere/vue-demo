@@ -1,7 +1,7 @@
 <template>
 <div id="root" >
-    <layout page-header="图可视化2"
-            active-item="graph2">
+    <layout page-header="级联补数-图可视化"
+            active-item="graph-rerun">
 
         <CommonGraph ref="commonGraph" >
                 <template slot="header">
