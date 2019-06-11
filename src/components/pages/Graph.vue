@@ -6,6 +6,9 @@
         <CommonGraph ref="commonGraph" >
                 <template slot="header">
                 <a-input class="jobIdSet inputItem"  placeholder="jobId" @change="setNowJobId" ></a-input>
+                <a-button class="buttonItem"  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
+                <a-icon   class="iconItem"  :style="'color: black;pointer-events: none;'" type="border-horizontal"    ></a-icon>
+
                 <a-tooltip placement="topLeft" >
                       <template slot="title">
                         <span>开始运行</span>
@@ -19,7 +22,14 @@
                       <template slot="title">
                         <span>标记成功</span>
                       </template>
-                      <a-icon  class="iconItem"  @click="succeedV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: green;'"  type="check"   ></a-icon>
+                      <a-icon  class="iconItem"  @click="succeedV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: green;'"  type="check-circle"   ></a-icon>
+                </a-tooltip>
+
+                <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>标记待运行</span>
+                      </template>
+                      <a-icon  class="iconItem"  @click="clearV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: #1890ff;'"  type="clock-circle"   ></a-icon>
                 </a-tooltip>
 
                 <a-tooltip placement="topLeft" >
@@ -31,14 +41,58 @@
                 <!--
                 <a-button class="buttonItem"  type="primary" @click="stopV" :disabled="!nowClicked" >停止运行</a-button>
                 -->
-                <a-button class="buttonItem"  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
+
+                <a-icon   class="iconItem"  :style="'color: black;pointer-events: none;'" type="border-horizontal"    ></a-icon>
+
+                <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>显示在运行任务</span>
+                      </template>
+                      <!--
+                                              <a-button class="buttonItem"  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
+
+                      -->   
+                     <a-icon  class="iconItem"  @click="showRunning" :disabled="!nowJobIdExists" :style="!nowJobIdExists?'color: #d9d9d9;cursor: not-allowed;':'color: green;'"  type="smile"    ></a-icon>
+
+                </a-tooltip>
+
+               <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>显示失败任务</span>
+                      </template>
+                      <!--
+                                              <a-button class="buttonItem"  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
+
+                      -->   
+                     <a-icon  class="iconItem"  @click="showFailed" :disabled="!nowJobIdExists" :style="!nowJobIdExists?'color: #d9d9d9;cursor: not-allowed;':'color: #f8666e;'"  type="frown"    ></a-icon>
+
+                </a-tooltip>
+                <!--
+                <a-button class="buttonItem"  type="primary" @click="showFailed" :disabled="!nowJobIdExists">显示失败</a-button>
+                -->
+
+                <!--
+                <a-button class="buttonItem"  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
+                -->
+               <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>显示未运行最上层节点</span>
+                      </template>
+                      <!--
+                                              <a-button class="buttonItem"  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
+
+                      -->   
+                     <a-icon  class="iconItem"  @click="showNotRunningTop" :disabled="!nowJobIdExists" :style="!nowJobIdExists?'color: #d9d9d9;cursor: not-allowed;':'color: #cb4eb3;'"  type="meh"    ></a-icon>
+
+                </a-tooltip>       
+                <!--         
+                <a-button class="buttonItem"  type="primary" @click="showNotRunningTop" :disabled="!nowJobIdExists">显示未运行最上层</a-button>
+                -->
+                <a-icon   class="iconItem"  :style="'color: black;pointer-events: none;'" type="border-horizontal"    ></a-icon>
 
                 <a-button class="buttonItem"  type="primary" @click="showRoot" :disabled="!nowJobIdExists">显示根节点</a-button>
-                <a-button class="buttonItem"  type="primary" @click="showFailed" :disabled="!nowJobIdExists">显示失败</a-button>
                 <a-button class="buttonItem"  type="primary" @click="showUpstream" :disabled="!nowJobIdExists||!nowClicked">显示节点上游</a-button>
                 <a-button class="buttonItem"  type="primary" @click="showDownstream" :disabled="!nowJobIdExists||!nowClicked">显示节点下游</a-button>
-                <a-button class="buttonItem"  type="primary" @click="showRunning" :disabled="!nowJobIdExists"> 显示在运行</a-button>
-                <a-button class="buttonItem"  type="primary" @click="showNotRunningTop" :disabled="!nowJobIdExists">显示未运行最上层</a-button>
                 <a-button class="buttonItem"  type="primary" @click="showPath" :disabled="!nowJobIdExists|| !nowSelected || nowSelected.length<2">显示两点间路径</a-button>
                 <div style="display:'inline-block'">
                     <a-popover
@@ -57,23 +111,34 @@
                         </template>
                   </a-popover>
               </div>
+               <a-icon   class="iconItem"  :style="'color: black;pointer-events: none;'" type="border-horizontal"    ></a-icon>
+
                 </template>
               
               <template slot="status">
                 <div >
                   <br/>
-                  <div class="nowJobIdStatus">
-                    
-                    {{nowJobIdStatus===null?"":nowJobIdStatus}}
-                  </div>
-                  <a-card     :bodyStyle="{padding:'3px'}"
+                  
+                  <a-card  v-if="nowJobId"   :bodyStyle="{padding:'3px'}"
+                              :hoverable="true"
+                              class="card-warpper">
+                        <div class="cardItem">
+                          <div v-for="key in Object.keys(nowJobIdStatus===null?{}:nowJobIdStatus)"
+                              :key="key"
+                              class="item">
+                            <div class="value"><font style="font-weight: bold">{{ key }}</font>: {{ nowJobIdStatus[key] }}</div>
+
+                          </div>
+                        </div>
+                  </a-card>
+                  <a-card  v-if="nowClicked"   :bodyStyle="{padding:'3px'}"
                               :hoverable="true"
                               class="card-warpper">
                         <div class="cardItem">
                           <div v-for="key in Object.keys(nowShowData===null?{}:nowShowData)"
                               :key="key"
                               class="item">
-                            <div class="value"><font color="red">{{ key }}</font>: {{ nowShowData[key] }}</div>
+                            <div class="value"><font style="font-weight: bold">{{ key }}</font>: {{ nowShowData[key] }}</div>
 
                           </div>
                         </div>
@@ -233,7 +298,7 @@ export default {
         console.log('reflushTaskStatus...')
         if(this.registerV){
           Object.keys(this.registerV).forEach(v=>{
-            this.showV(this.str2Task(v))
+            this.showV(this.str2Task(v),true)
           })
         }
     }
@@ -432,6 +497,7 @@ export default {
         ,label:this.getId(v)+"" 
         ,color:this.dealColor(task)
         ,title:this.convertToTitle(task)
+       , shape: 'ellipse'
       }
     },
 
@@ -473,23 +539,23 @@ export default {
           })
         }
     }       ,
-    renderTheGraph(data,mode){
+    renderTheGraph(data,mode,focus){
         let graph = _.get(data,'data.data.graph');
         if(graph&&this.$refs.commonGraph){
             this.$refs.commonGraph.update({
                 v:graph.v,
                 e:graph.e,
-            },mode,this.dealV,this.dealE)
+            },mode,this.dealV,this.dealE,focus)
             this.addSelectListen()
         }
     },
-    dealResponse(data,thenDo,mode){
+    dealResponse(data,thenDo,mode,focus){
         if(!mode){
           mode = 'add'
         }
         // console.log('data',data)
         this.registerTheTasks(data)
-        this.renderTheGraph(data,mode)
+        this.renderTheGraph(data,mode,focus)
         let graph = _.get(data,'data.data.graph');
         if(thenDo){
           thenDo()
@@ -497,10 +563,12 @@ export default {
     },
     updateThisJobIdStatus(status){
         if(!status){
-                this.nowJobIdStatus = "该jobId:"+this.nowJobId+" 不存在"
+                this.nowJobIdStatus = {"当前jobId":this.nowJobId,"状态":"该jobId不存在"}
+                // this.nowJobIdStatus = "该jobId:"+this.nowJobId+" 不存在"
                 this.nowJobIdExists = false;
         }else{
-              this.nowJobIdStatus = "当前jobId:"+this.nowJobId;
+              this.nowJobIdStatus = {"当前jobId":this.nowJobId,"状态":"ok"}
+              // this.nowJobIdStatus = "当前jobId:"+this.nowJobId;
               this.nowJobIdExists = true;
               this.countDown()
         }
@@ -660,7 +728,7 @@ export default {
         }).then((data)=>this.dealResponse(data,thenDo))
       }
     },
-    showV(showVData){
+    showV(showVData,focus){
       let ids = null;
       if(showVData&&showVData.clusterId){
         ids = showVData
@@ -678,7 +746,7 @@ export default {
                 },
                 type:'post',
                 
-        }).then(this.dealResponse)
+        }).then((data)=>this.dealResponse(data,null,null,focus))
       }
     },
     startV(){
@@ -721,6 +789,18 @@ export default {
       if(this.nowJobId&&this.nowClicked){
         axiosRequst({
                 path: '/data/back/edit/job/status/succeed/node',
+                params: {
+                  jobId:this.nowJobId,
+                  ... this.nowClicked
+                },
+                type:'post'
+        }).then(this.dealResponse)
+      }
+    },
+     clearV(){
+      if(this.nowJobId&&this.nowClicked){
+        axiosRequst({
+                path: '/data/back/edit/job/status/clear/node',
                 params: {
                   jobId:this.nowJobId,
                   ... this.nowClicked

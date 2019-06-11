@@ -102,7 +102,7 @@ export default {
         options ,
         nodes: new DataSet(),
         edges:new DataSet()
-      }
+      },
   }),
 
  
@@ -120,7 +120,7 @@ export default {
         this.network.edges.clear()
     },
 
-    update(graph,mode,vCallback,eCallback){
+    update(graph,mode,vCallback,eCallback,focus){
       if(!mode){
         mode = 'add';
       }
@@ -157,7 +157,9 @@ export default {
         })
       }
       if(mode === 'add'){
+        
         this.network.nodes.update(updateV)
+
       }else{
         this.network.nodes.remove(updateV)
       }
@@ -198,7 +200,17 @@ export default {
       if(updateE.length>0){
         this.network.edges.update(updateE[0])
       }
-
+      if(!focus){
+        if(mode === 'add'){
+          
+          // updateV.forEach(v=>{
+          this.getNetwork().selectNodes(updateV.map(v=>v.id))
+          // })
+          updateV.forEach(v=>{
+            this.getNetwork().focus(v.id)
+          })
+        }
+      }
     },
 
     changeGraphEnablePhysics(newValue){
