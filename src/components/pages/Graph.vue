@@ -9,12 +9,7 @@
                 <a-button class="buttonItem"  type="primary" @click="reflushTaskStatus" :disabled="true">{{reflushContent}}</a-button>
                 <a-icon   class="iconItem"  :style="'color: black;pointer-events: none;'" type="border-horizontal"    ></a-icon>
 
-                <a-tooltip placement="topLeft" >
-                      <template slot="title">
-                        <span>开始运行</span>
-                      </template>
-                      <a-icon  class="iconItem"  @click="startV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':''"  type="play-circle"   ></a-icon>
-                </a-tooltip>
+
                 <!--
                 <a-button class="buttonItem" type="primary" @click="succeedV" :disabled="!nowClicked" >标记成功</a-button>
                 -->
@@ -22,21 +17,26 @@
                       <template slot="title">
                         <span>标记成功</span>
                       </template>
-                      <a-icon  class="iconItem"  @click="succeedV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: green;'"  type="check-circle"   ></a-icon>
+                      <a-icon  class="iconItem"  @click="succeedV" :disabled="!nowClicked" :style="(nowClicked && !nowJobIdIsInStopQueue)?'color: green;cursor:pointer':''"  type="check-circle"   ></a-icon>
                 </a-tooltip>
 
                 <a-tooltip placement="topLeft" >
                       <template slot="title">
                         <span>标记待运行</span>
                       </template>
-                      <a-icon  class="iconItem"  @click="clearV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: #1890ff;'"  type="clock-circle"   ></a-icon>
+                      <a-icon  class="iconItem"  @click="clearV" :disabled="!nowClicked" :style="(nowClicked && !nowJobIdIsInStopQueue)?'color: #1890ff;cursor:pointer':''"  type="clock-circle"   ></a-icon>
                 </a-tooltip>
-
                 <a-tooltip placement="topLeft" >
                       <template slot="title">
-                        <span>停止运行</span>
+                        <span>加入运行队列</span>
                       </template>
-                      <a-icon  class="iconItem"  @click="stopV" :disabled="!nowClicked" :style="!nowClicked?'color: #d9d9d9;cursor: not-allowed;':'color: #f8666e;'"  type="close-circle"   ></a-icon>
+                      <a-icon  class="iconItem"  @click="startV" :disabled="!nowClicked" :style="(nowClicked && nowJobIdIsInStopQueue)?'color: #008000;cursor:pointer':''"  type="play-circle"   ></a-icon>
+                </a-tooltip>
+                <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>加入停止队列</span>
+                      </template>
+                      <a-icon  class="iconItem"  @click="stopV" :disabled="!nowClicked" :style="(nowClicked && !nowJobIdIsInStopQueue)?'color: #f8666e;cursor:pointer':''"  type="close-circle"   ></a-icon>
                 </a-tooltip>
                 <!--
                 <a-button class="buttonItem"  type="primary" @click="stopV" :disabled="!nowClicked" >停止运行</a-button>
@@ -208,7 +208,8 @@ export default {
       reflushContent:"刷新节点状态",
       reflushTotalTime:30,
       nowFlushStart:false,
-      nowCountDown:null
+      nowCountDown:null,
+      nowJobIdIsInStopQueue:null,
     }
   },
   // watch: {
@@ -251,6 +252,7 @@ export default {
       this.reflushContent = "刷新节点状态"
       this.reflushTotalTime = 30
       this.nowFlushStart = false
+      this.nowJobIdIsInStopQueue = null
     },
     str2Task(str){
       if(str){
@@ -519,7 +521,14 @@ export default {
             if(v){
               const task = this.registerTasks[v]
               if(task){
+                if(task.priority>2){
+                    this.nowJobIdIsInStopQueue = true
+                }else{
+                    this.nowJobIdIsInStopQueue = false
+                }
+                console.log('this.nowJobIdIsInStopQueue',this.nowJobIdIsInStopQueue)
                 Object.assign(this.nowShowData,this.convertToStatus(task))
+
               }
             }
           
@@ -830,8 +839,8 @@ export default {
   margin-right:10px;
 }
 .iconItem{
-  cursor     : pointer;
-    color    : #1890ff;
+  cursor     : not-allowed;
+    color    :  #d9d9d9;
     font-size: 200%;
       margin-right: 10px;
   margin-bottom: 10px;
