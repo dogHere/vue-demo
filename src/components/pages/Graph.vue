@@ -506,9 +506,9 @@ export default {
 
     dealE (e){
       return {
-        id:   e.source.key+"->"+e.dest.key, 
-        from: e.source.key,
-        to:   e.dest.key
+        id:   e.source+"->"+e.dest, 
+        from: e.source,
+        to:   e.dest
       }
     },
     addSelectListen(){
