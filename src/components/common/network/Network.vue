@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { DataSet, DataView, Network } from 'vis';
+import { DataSet, Network } from 'vis';
 import { mountVisData, translateEvent } from './util';
 
 export default {
@@ -261,7 +261,7 @@ export default {
     this.visData.edges = mountVisData(this, 'edges');
     
     this.network = new Network(container, this.visData, JSON.parse(JSON.stringify(this.options)));
-    console.log('mounted hahaha')
+    // console.log('mounted hahaha')
     this.events.forEach(eventName =>
       this.network.on(eventName, props => this.$emit(translateEvent(eventName), props))
     );

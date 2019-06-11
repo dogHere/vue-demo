@@ -17,7 +17,10 @@
                       <template slot="title">
                         <span>标记成功</span>
                       </template>
-                      <a-icon  class="iconItem"  @click="succeedV" :disabled="!nowClicked" :style="(nowClicked && !nowJobIdIsInStopQueue)?'color: green;cursor:pointer':''"  type="check-circle"   ></a-icon>
+                      <div :style="(nowClicked && !nowJobIdIsInStopQueue)?'color: green;cursor:pointer':'cursor:not-allowed;'" >
+                        <a-icon  class="iconItem"  @click="succeedV" 
+                              :disabled="!nowClicked" :style="(nowClicked && !nowJobIdIsInStopQueue)?'color: green;cursor:pointer':'pointer-events: none;'"  type="check-circle"   ></a-icon>
+                      </div>
                 </a-tooltip>
 
                 <a-tooltip placement="topLeft" >
@@ -297,7 +300,7 @@ export default {
     }
     ,
     reflushTaskStatus(){
-        console.log('reflushTaskStatus...')
+        // console.log('reflushTaskStatus...')
         if(this.registerV){
           Object.keys(this.registerV).forEach(v=>{
             this.showV(this.str2Task(v),true)
@@ -314,9 +317,7 @@ export default {
           this.initShow()
       }
     },
-    helloworld(data){
-        console.log('hellowrold',data.target.value)
-    },
+
     register(v){
       if(!this.registerV[v]){
           this.registerV[v] = this.registerVCnt;
@@ -526,7 +527,7 @@ export default {
                 }else{
                     this.nowJobIdIsInStopQueue = false
                 }
-                console.log('this.nowJobIdIsInStopQueue',this.nowJobIdIsInStopQueue)
+                // console.log('this.nowJobIdIsInStopQueue',this.nowJobIdIsInStopQueue)
                 Object.assign(this.nowShowData,this.convertToStatus(task))
 
               }
@@ -565,7 +566,7 @@ export default {
         // console.log('data',data)
         this.registerTheTasks(data)
         this.renderTheGraph(data,mode,focus)
-        let graph = _.get(data,'data.data.graph');
+        // let graph = _.get(data,'data.data.graph');
         if(thenDo){
           thenDo()
         }

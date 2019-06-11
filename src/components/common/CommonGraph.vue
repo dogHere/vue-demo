@@ -40,7 +40,7 @@
 </template>
 <script>
 import Network from '../common/network/Network'
-import {DataSet,DataView} from 'vis'
+import {DataSet} from 'vis'
 import 'vis/dist/vis.min.css';
 
 
