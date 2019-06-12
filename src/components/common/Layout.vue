@@ -14,7 +14,7 @@
               mode="inline">
         <a-menu-item v-for="menuItem in menuItems"
                      :key="menuItem.key">
-          <router-link :to="{name: menuItem.key}">
+          <router-link :to="{name: menuItem.key}" target="_blank">
 
             <a-icon :type="menuItem.icon"
                     style="fontSize: 22px" />
@@ -58,11 +58,21 @@ export default {
           icon: 'project',
           title: '表级别血缘-图可视化'
         },
+        {
+          key: 'graph-table2',
+          icon: 'project',
+          title: '表级别血缘-图可视化'
+        },
         // {
         //   key: 'develop',
         //   icon: 'rocket',
         //   title: '开发',
         // },
+        {
+          key: 'graph-task',
+          icon: 'rocket',
+          title: 'Task级别血缘-图可视化'
+        },
         // {
         //   key: 'urls',
         //   icon: 'appstore',
