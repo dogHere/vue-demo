@@ -13,15 +13,15 @@ export default new Router({
       component: Graph
     }
     ,
-    {
-      path: '/',
-      name: 'graph-rerun',
-      component: Graph
-    }
-    ,
+    // {
+    //   path: '/',
+    //   name: 'graph-rerun',
+    //   component: Graph
+    // }
+    // ,
     {
       path: '/graph-table',
-      name: 'table',
+      name: 'graph-table',
       component: GraphTable
     }
   ]

@@ -54,7 +54,7 @@ export default {
         }
         ,
         {
-          key: 'table',
+          key: 'graph-table',
           icon: 'project',
           title: '表级别血缘-图可视化'
         },
