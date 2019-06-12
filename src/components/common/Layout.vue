@@ -34,7 +34,6 @@
         </div>
       </a-layout-content>
       <a-layout-footer style="text-align: center">
-        数据平台 ©2019 Created by ranxianglei
       </a-layout-footer>
     </a-layout>
   </a-layout>
