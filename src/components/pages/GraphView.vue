@@ -38,7 +38,7 @@
 
                               <br/>
                               <br/>
-                              <a-radio-group defaultValue="keyPath" @change="searchTargetChange" buttonStyle="solid">
+                              <a-radio-group :defaultValue="searchTableDefault" @change="searchTargetChange" buttonStyle="solid">
                               
                                 <a-radio-button value="keyPath">关键路径</a-radio-button>
                                 <a-radio-button value="keyPathOnly">关键路径Only</a-radio-button>
@@ -196,7 +196,18 @@ export default {
         default:(e)=>{
           return e;
         }
+      },
+      addOtherListen:{
+        type:[Function],
+        default:()=>{}
+      },
+      searchTableDefault:{
+        type:[String],
+        default:()=>{
+          return "keyPath"
+        }
       }
+
   },
 
   data(){
@@ -228,6 +239,26 @@ export default {
         this.lookupList={};
         this.currentShowData = null
     },
+
+    handleHotUpdateV(v,prop){
+        if(!v || !prop){
+          return 
+        }
+
+        let p = this.registerProps[v]
+        if(!p){
+          this.registerProps[v] = {}
+          p = this.registerProps[v]
+        }
+        Object.keys(prop).forEach(k=>{
+          p[k] = prop[k]
+        })
+        this.registerProps[v] = p;
+        let theV = this.dealV(v,true);
+        this.$refs.commonGraph.network.nodes.update(theV)
+    }
+    ,
+
     searchTargetChange(value){
         if(value&&value.target.value){
           this.searchTarget = value.target.value
@@ -304,8 +335,14 @@ export default {
     }
   }
   ,
-   dealV (tv){
-      const v = this.handle2StdV(tv)
+   dealV (tv,origin){
+      let v = null ;
+      if(!origin){
+          v = this.handle2StdV(tv)
+      }else{
+        v = tv;
+      }
+       
       this.register(v)
       const prop = this.registerProps[v];
       let title = this.convertToTitle(v,prop)
@@ -343,9 +380,13 @@ export default {
                 e:graph.e,
             },mode,this.dealV,this.dealE,focus)
             this.addSelectListen()
+            this.addOtherListen()
         }
     }
-    ,
+    
+    ,getNetwork(){
+        return this.$refs.commonGraph.getNetwork();
+    },
     addSelectListen(){
         this.$refs.commonGraph.getNetwork().on('click',(parms)=>{
           if(parms&&parms.nodes&&parms.nodes.length>0){

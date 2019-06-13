@@ -37,11 +37,11 @@ export default new Router({
       name: 'graph-table2',
       component: GraphTable2
     },
-    // {
-    //   path: '/graph-task',
-    //   name: 'graph-task',
-    //   component: GraphTask
-    // },
+    {
+      path: '/graph-task',
+      name: 'graph-task',
+      component: GraphTask
+    },
     // {
     //   path: '/graph-task',
     //   name: 'graph-task',

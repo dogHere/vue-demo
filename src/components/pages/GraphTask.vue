@@ -13,6 +13,9 @@
            :searchTableData="searchTableData"
            :handle2StdV="handle2StdV"
            :handle2StdE="handle2StdE"
+           :searchTableValue="searchTableValue"
+           :addOtherListen="addOtherListen"
+           :searchTableDefault="searchTableDefault"
            >
            <template slot="searchTable">
              <div>
@@ -54,7 +57,11 @@ export default {
   data(){
     return {
         searchTableData:["airflow_dw2@ks_dws-mail_daily_new_report_boss@mail_daily_new_report"],
+        searchDagData:[],
+        searchDagValue:null,
         searchTableValue:null,
+        searchTableDefault:"keyPath",
+        clusters:["airflow_dws","airflow_global"],
     }
   },
 
@@ -94,6 +101,57 @@ export default {
       }
     }
     ,
+    handleSearchDag(value){
+      // todo
+      if(value){
+        this.searchDagValue = value
+        axiosRequst({
+                path: '/internal/dg/findwhyslow/graph/dag/search',
+                params: {
+                  pDate:"20190610",
+                  dag:value
+                },
+                type:'get'
+        }).then(data=>{
+            let list = _.get(data,'data.data');
+            if(list&&list.length>0){
+                this.searchDagData = list;
+            }else{
+              this.searchDagData=[]
+            }
+        })
+      }
+    }
+    ,
+    addOtherListen(){
+       this.$refs.GraphView.getNetwork().on('showPopup',(parms)=>{
+          console.log("showPopup",parms)
+          // this.handleHotUpdateV(parms)
+      })
+    },
+    requestVReadyTime(v,thenDo){
+      axiosRequst({
+          path: '/internal/dg/findwhyslow/graph/task/lookup/dagReadyTime',
+          params: {
+            pDate:"20190610",
+            task:v
+          },
+          type:'get'
+      }).then(data=>{
+          let readyTime = _.get(data,'data.data');
+          if(readyTime&&thenDo){
+            thenDo(readyTime)
+          }
+      })
+    }
+    ,
+    handleHotUpdateV(v){
+      if(v){
+        this.requestVReadyTime(v,(readyTime)=>{
+          this.$refs.GraphView.handleHotUpdateV(v,readyTime)
+        })
+      }
+    },
     showUpstreamAPI:(value)=>{
         return {
           path: '/internal/dg/findwhyslow/graph/task/upstream2',
@@ -159,9 +217,14 @@ export default {
           "dagId":prop["dagId"],
           "taskId":prop["taskId"],
           "keyPath":prop["keyPath"],
-         
+          "executionDate":prop["executionDate"],
+          "开始时间":prop["startDate"],
+          "结束时间":prop["endDate"],
+          "执行时长":prop["duration"],
+          "状态":prop["state"],
         }
     },
+
   },
 }
 

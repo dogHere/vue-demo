@@ -78,7 +78,7 @@ let options = {
     // dragNodes: true 
     multiselect:true,
     hover:true,
-    tooltipDelay:0,
+    tooltipDelay:30,
     hideNodesOnDrag:false
   }
 

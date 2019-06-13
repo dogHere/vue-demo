@@ -66,7 +66,6 @@ export default {
   watch: {
     options: {
       deep: true,
-      lazy:false,
       handler(o) {
         this.network.setOptions(JSON.parse(JSON.stringify(o)));
       }
