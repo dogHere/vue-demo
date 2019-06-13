@@ -3,6 +3,7 @@
             <CommonGraph ref="commonGraph" >
 
              <template slot="header">
+                <slot name="moreButton"></slot>
                 <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupUpstream" >显示节点上游</a-button>
                 <a-button class="buttonItem" :disabled="!currentClicked" type="primary" @click="lookupDownstream" >显示节点下游</a-button>
                 <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupKeyPath" >显示关键路径</a-button>
@@ -178,6 +179,18 @@ export default {
           default: ()=>{
               return ["累计DAU_0201使用.5206"]
           }
+      },
+      handle2StdV:{
+        type:[Function],
+        default:(v)=>{
+          return v;
+        }
+      },
+      handle2StdE:{
+        type:[Function],
+        default:(e)=>{
+          return e;
+        }
       }
   },
 
@@ -258,7 +271,7 @@ export default {
     const ob = this.descProps(this.convertToProps(v,prop))
     let title = "";
     Object.keys(ob).forEach(k=>{
-        title=title+k+":"+ob[k]+"<br/>";
+        title=title+k+":"+(ob[k]===undefined?"":ob[k])+"<br/>";
     })
     
     return title;
@@ -286,7 +299,8 @@ export default {
     }
   }
   ,
-   dealV (v){
+   dealV (tv){
+      const v = this.handle2StdV(tv)
       this.register(v)
       const prop = this.registerProps[v];
       let title = this.convertToTitle(v,prop)
@@ -300,7 +314,8 @@ export default {
       }
     },
 
-    dealE (e){
+    dealE (te){
+      const e = this.handle2StdE(te)
       return {
         id:   e.source+"->"+e.dest, 
         from: e.source,

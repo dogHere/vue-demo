@@ -54,7 +54,6 @@
 
                         </template>
 
-                         
                    </a-popover>
               </div>
              <a-button class="buttonItem"  type="primary" @click="reset" >重置画布</a-button>

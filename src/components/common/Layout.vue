@@ -47,17 +47,17 @@ export default {
     return {
       collapsed: true,
       menuItems: [
-        {
-          key: 'graph-rerun',
-          icon: 'dashboard',
-          title: '级联补数-图可视化'
-        }
-        ,
-        {
-          key: 'graph-table',
-          icon: 'project',
-          title: '表级别血缘-图可视化'
-        },
+        // {
+        //   key: 'graph-rerun',
+        //   icon: 'dashboard',
+        //   title: '级联补数-图可视化'
+        // }
+        // ,
+        // {
+        //   key: 'graph-table',
+        //   icon: 'project',
+        //   title: '表级别血缘-图可视化'
+        // },
         {
           key: 'graph-table2',
           icon: 'project',
@@ -68,11 +68,11 @@ export default {
         //   icon: 'rocket',
         //   title: '开发',
         // },
-        {
-          key: 'graph-task',
-          icon: 'rocket',
-          title: 'Task级别血缘-图可视化'
-        },
+        // {
+        //   key: 'graph-task',
+        //   icon: 'rocket',
+        //   title: 'Task级别血缘-图可视化'
+        // },
         // {
         //   key: 'urls',
         //   icon: 'appstore',
