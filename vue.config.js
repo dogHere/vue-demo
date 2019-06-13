@@ -1,7 +1,7 @@
 module.exports = {
     // 修改的配置
     // 将baseUrl: '/api',改为baseUrl: '/',
-    publicPath: '/',
+    publicPath: process.env.NODE_ENV === 'production'?'/internal/dg/findwhyslow/index':'/',
     devServer: {
         proxy: {
             '/data/back': {

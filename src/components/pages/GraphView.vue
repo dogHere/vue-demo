@@ -180,6 +180,11 @@ export default {
               return ["累计DAU_0201使用.5206"]
           }
       },
+      searchTableValue:{
+        type:[String],
+        default: ()=>null,
+      }
+      ,
       handle2StdV:{
         type:[Function],
         default:(v)=>{
@@ -201,7 +206,7 @@ export default {
         searching:false,
         searchedList:{},
         lookupList:{},
-        searchTableValue:null,
+        // searchTableValue:null,
         registerProps:{},
         searchTarget:"keyPath",
         currentSelected:null,
@@ -216,7 +221,7 @@ export default {
         this.registerVCnt=0;
         this.searching=false;
         this.searchedList = {};
-        this.searchTableValue=null;
+        // this.searchTableValue=null;
         this.registerProps={};
         this.currentSelected = null;
         this.currentClicked = null;
@@ -397,8 +402,8 @@ export default {
       }
     }
     ,showEvent(){
-      if(this.searchTableData&&this.searchTableData.length==1){
-        const value = this.searchTableData[0]
+      if(this.searchTableValue&&this.searchTableData&&this.searchTableData.includes(this.searchTableValue)){
+        const value = this.searchTableValue;
         this.searchedList[value]=true
         
         if(this.searchTarget==="keyPathOnly"){

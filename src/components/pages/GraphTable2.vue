@@ -11,6 +11,7 @@
            :handleStr2Obj="handleStr2Obj"
            :handleDescProps="handleDescProps"
            :searchTableData="searchTableData"
+           :searchTableValue="searchTableValue"
            >
 
           <template slot="moreButton">

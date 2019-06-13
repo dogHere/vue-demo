@@ -10,12 +10,12 @@ Vue.use(Router)
 
 export default new Router({
   routes: [
-    // {
-    //   path: '/graph-rerun',
-    //   name: 'graph-rerun',
-    //   component: Graph
-    // }
-    // ,
+    {
+      path: '/graph-rerun',
+      name: 'graph-rerun',
+      component: Graph
+    }
+    ,
     // {
     //   path: '/',
     //   name: 'graph-rerun',
