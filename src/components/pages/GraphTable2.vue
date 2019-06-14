@@ -235,6 +235,7 @@ export default {
            "创建时间":prop["createdTime"],
            "分区数":prop["partitionNums"],
            "最大分区日期":prop["maxPartition"],
+           "pDate":pDateGlobal
 
         }
     },

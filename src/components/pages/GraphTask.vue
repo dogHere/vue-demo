@@ -389,7 +389,8 @@ export default {
           "执行时长":handleNas(prop["duration"]),
           "状态":prop["state"],
           "tryNumber":prop["tryNumber"],
-          "operator":prop["operator"]
+          "operator":prop["operator"],
+          "pDate":pDateGlobal
 
         }
     },

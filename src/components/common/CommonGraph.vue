@@ -10,14 +10,16 @@
                             >
                             <a-button  type="primary" > 图配置 </a-button>
                             <template slot="content">
-                                physics: <a-switch defaultUnChecked @change="changeGraphEnablePhysics"   /> <br/>
-                                levelSeparation: <a-slider :defaultValue="200" :max="1500" :min="100" @change="changeLevelSeparation"   /> 
-                                nodeSpacing: <a-slider :defaultValue="500" :max="2000" @change="changeNodeSpacing"   /> <br/>
-                                treeSpacing: <a-slider :defaultValue="1000" @change="changeTreeSpacing"   /> <br/>
+                                <slot name="otherConfig"></slot>
+                                节点hover提示: <a-switch defaultChecked @change="handleShowTooptipChange"   /><br/>
+                                节点自由移动: <a-switch defaultUnChecked @change="changeGraphEnablePhysics"   /> <br/>
+                                层级间距: <a-slider :defaultValue="200" :max="1500" :min="100" @change="changeLevelSeparation"   /> 
+                                节点间距: <a-slider :defaultValue="500" :max="2000" @change="changeNodeSpacing"   /> <br/>
+                                树间距: <a-slider :defaultValue="1000" @change="changeTreeSpacing"   /> <br/>
                                 blockShifting: <a-switch defaultUnChecked @change="helloworld"   /> <br/>
                                 edgeMinimization: <a-switch defaultUnChecked @change="helloworld"   /> <br/>
                                 parentCentralization: <a-switch defaultUnChecked @change="helloworld"   /> <br/>
-                                direction: <a-select defaultValue="UD" @change="changeDirection">
+                                方向: <a-select defaultValue="UD" @change="changeDirection">
                                     <a-select-option value="UD">UD</a-select-option>
                                     <a-select-option value="DU">DU</a-select-option>
                                     <a-select-option value="LR">LR</a-select-option>
@@ -27,15 +29,16 @@
                         </a-popover>
                     </div>
             </div>
-
-          <slot name="status"></slot>
-           <div id="graph-wrapper"  >
-              <network class="network" ref="network"
-                :nodes = "network.nodes"
-                :edges = "network.edges"
-                :options="network.options">
-              </network>
-            </div>
+           <div>
+            <slot  name="status"></slot>
+            <div id="graph-wrapper"   >
+                <network class="network" ref="network"
+                  :nodes = "network.nodes"
+                  :edges = "network.edges"
+                  :options="network.options">
+                </network>
+              </div>
+           </div>  
  </div>           
 </template>
 <script>
@@ -109,6 +112,7 @@ export default {
   methods: {
     helloworld(){
     },
+
 
     getNetwork(){
         return this.$refs.network;
@@ -242,6 +246,17 @@ export default {
         this.network.options.layout.hierarchical.direction = newValue
       }
     },
+    handleShowTooptipChange(newValue){
+        this.network.options.interaction.hover = newValue
+        if(newValue){
+             this.network.options.interaction.tooltipDelay = 0
+        }else{
+           this.network.options.interaction.tooltipDelay = 100000
+        }
+        
+        console.log("handleShowTooptipChange this.network.options.interaction.hover",this.network.options.interaction.hover);
+    },
+
   },
 
   

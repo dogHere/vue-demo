@@ -3,6 +3,10 @@
             <CommonGraph ref="commonGraph" >
 
              <template slot="header">
+
+                
+
+
                 <slot name="moreButton"></slot>
                 <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupUpstream" :loading="showUpstreamPending" >显示节点上游</a-button>
                 <a-button class="buttonItem" :disabled="!currentClicked" type="primary" @click="lookupDownstream" :loading="showDownstreamPending" >显示节点下游</a-button>
@@ -58,8 +62,8 @@
             </template>
               
             <template slot="status">
-                  <a-card  v-if="currentClicked"   :bodyStyle="{padding:'3px'}"
-                              :hoverable="true"
+                  <a-card    :bodyStyle="{padding:'0px',height: '50px' }"
+                              :hoverable="false"
                               class="card-warpper">
                         <div class="cardItem">
                           <div v-for="key in Object.keys(currentShowData===null?{}:currentShowData)"
@@ -231,12 +235,13 @@ export default {
         searchTarget:"keyPath",
         currentSelected:null,
         currentClicked:null,
+        currentHover:null,
         currentShowData:null,
         setErrorHandle:setErrorHandle,
         showKeyPathPending:false,
         showPathPending:false,
         showDownstreamPending:false,
-        showUpstreamPending:false
+        showUpstreamPending:false,
 
 
 
@@ -253,9 +258,12 @@ export default {
         this.registerProps={};
         this.currentSelected = null;
         this.currentClicked = null;
+        this.currentHover = null;
         this.lookupList={};
         this.currentShowData = null
-    },
+    }
+
+  ,
 
     handleHotUpdateV(v,prop){
         if(!v || !prop){
@@ -424,7 +432,18 @@ export default {
             this.currentSelected = null;
             this.currentClicked = null;
             this.currentShowData = null;
+            this.currentHover = null;
           }
+        })
+
+        this.$refs.commonGraph.getNetwork().on('showPopup',(v)=>{
+            if(v){
+              this.currentHover = v;
+                
+              const prop = this.registerProps[v];
+                
+              this.currentShowData = this.descProps(this.convertToProps(v,prop))
+            }
         })
     } ,  
      dealResponse(data,thenDo,mode,focus){
