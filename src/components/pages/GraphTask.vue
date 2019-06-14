@@ -19,19 +19,53 @@
            >
            <template slot="searchTable">
              <div>
-               <a-select
-                  showSearch
-                  :value="searchTableValue"
+             clusterId
+             <br/>
+             <a-select
+                  
+                  :value="searchClusterValue"
                   placeholder="input search text"
-                  style="width: 1200px"
+                  style="width: 700px"
                   :defaultActiveFirstOption="false"
                   :showArrow="false"
                   :filterOption="false"
-                  @search="handleSearchTable"
+                  @change="handleChangeCluster"
+                  :notFoundContent="null"
+                >
+                  <a-select-option v-for="d in clusters" :key="d">{{d}}</a-select-option>
+                </a-select>
+                <br/>
+                dagId
+                 <br/>
+             <a-select
+                  showSearch
+                  :value="searchDagValue"
+                  placeholder="input search text"
+                  style="width: 700px"
+                  :defaultActiveFirstOption="false"
+                  :showArrow="false"
+                  :filterOption="false"
+                  @search="handleSearchDag"
+                  @change="handleChangeDag"
+                  :notFoundContent="null"
+                >
+                  <a-select-option v-for="d in searchDagData" :key="d">{{toDag(d)}}</a-select-option>
+                </a-select>
+                  <br/>
+                  taskId 
+                   <br/>
+               <a-select
+                  
+                  :value="searchTableValue"
+                  placeholder="input search text"
+                  style="width: 700px"
+                  :defaultActiveFirstOption="false"
+                  :showArrow="false"
+                  :filterOption="false"
                   @change="handleChangeTable"
                   :notFoundContent="null"
                 >
-                  <a-select-option v-for="d in searchTableData" :key="d">{{d}}</a-select-option>
+                  <a-select-option v-for="d in searchTableData" :key="d">{{toTask(d)}}</a-select-option>
                 </a-select>
              </div>
            </template>
@@ -58,14 +92,29 @@ export default {
     return {
         searchTableData:["airflow_dw2@ks_dws-mail_daily_new_report_boss@mail_daily_new_report"],
         searchDagData:[],
+
         searchDagValue:null,
+        
         searchTableValue:null,
         searchTableDefault:"keyPath",
-        clusters:["airflow_dws","airflow_global"],
+        clusters:["airflow_dw2","airflow_global","airflow_idp1"],
+        searchClusterValue:null,
     }
   },
 
   methods: {
+     toTask(d){
+      if(d){
+        return d.split("@")[2]
+      }
+    }
+    ,
+    toDag(d){
+      if(d){
+        return d.split("@")[1]
+      }
+    }
+    ,
     handle2StdV:(v)=>{
         return v.theKey
     }
@@ -75,14 +124,34 @@ export default {
             dest:e.dest.theKey
         }
     }
+    
+    ,
+    handleChangeCluster(value){
+      this.searchClusterValue = value
+      this.searchDagValue = null
+      this.searchTableValue = null
+      this.searchDagData=[]
+      this.searchTableData=[]
+    }
+    ,
+
+    handleChangeDag(value){
+      if(this.searchClusterValue){
+        this.searchDagValue = value
+
+        this.handleSearchDag(this.searchDagValue ,true)
+        this.handleSearchTable(this.searchDagValue)
+        this.searchTableValue = null
+      }
+    }
     ,handleChangeTable(value){
       this.searchTableValue = value
-      this.handleSearchTable(value)
+      
     }
     ,
     handleSearchTable(value){
       if(value){
-        this.searchTableValue = value
+        // this.searchTableValue = value
         axiosRequst({
                 path: '/internal/dg/findwhyslow/graph/task/search',
                 params: {
@@ -101,7 +170,13 @@ export default {
       }
     }
     ,
-    handleSearchDag(value){
+    handleSearchDag(tvalue,origin){
+      let value ;
+      if(origin){
+          value = tvalue
+      }else{
+         value = this.searchClusterValue+"@"+tvalue
+      }
       // todo
       if(value){
         this.searchDagValue = value
