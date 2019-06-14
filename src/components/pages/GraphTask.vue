@@ -63,7 +63,7 @@
                  <br/>
              <a-select
                   showSearch
-                  :value="searchDagValue"
+                  :value="searchDagValue==null?'':toDag(searchDagValue)"
                   placeholder="input search text"
                   style="width: 700px"
                   :defaultActiveFirstOption="false"
@@ -72,6 +72,7 @@
                   @search="handleSearchDag"
                   @change="handleChangeDag"
                   :notFoundContent="null"
+                  
                 >
                   <a-select-option v-for="d in searchDagData" :key="d">{{toDag(d)}}</a-select-option>
                 </a-select>
@@ -166,6 +167,7 @@ export default {
         clusters:["airflow_dw2","airflow_abtest","airflow_global","airflow_idp1","airflow_global_prod","airflow_ods","airflow_privacy"],
         searchClusterValue:null,
         pDate:pDateGlobal,
+        searchDagPending:false,
     }
   },
 
@@ -214,10 +216,11 @@ export default {
     handleChangeDag(value){
       if(this.searchClusterValue){
         this.searchDagValue = value
-
-        this.handleSearchDag(this.searchDagValue ,true)
-        this.handleSearchTable(this.searchDagValue)
         this.searchTableValue = null
+
+        this.handleSearchDag(this.searchDagValue ,true,()=>{
+          this.handleSearchTable(this.searchDagValue)
+        })
       }
     }
     ,handleChangeTable(value){
@@ -236,6 +239,7 @@ export default {
                 },
                 type:'get'
         }).then(data=>{
+            
             let list = _.get(data,'data.data');
             if(list&&list.length>0){
                 this.searchTableData = list;
@@ -246,7 +250,7 @@ export default {
       }
     }
     ,
-    handleSearchDag(tvalue,origin){
+    handleSearchDag(tvalue,origin,thenDo){
       let value ;
       if(origin){
           value = tvalue
@@ -256,6 +260,8 @@ export default {
       // todo
       if(value){
         this.searchDagValue = value
+        this.searchDagPending = true
+
         axiosRequst({
                 path: '/internal/dg/findwhyslow/graph/dag/search',
                 params: {
@@ -264,11 +270,17 @@ export default {
                 },
                 type:'get'
         }).then(data=>{
+            this.searchDagPending=false
             let list = _.get(data,'data.data');
             if(list&&list.length>0){
                 this.searchDagData = list;
             }else{
               this.searchDagData=[]
+            }
+            if(thenDo){
+              thenDo()
+            }else{
+              
             }
         })
       }
