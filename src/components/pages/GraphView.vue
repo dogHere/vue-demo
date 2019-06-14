@@ -255,6 +255,8 @@ export default {
         this.searching=false;
         this.searchedList = {};
         // this.searchTableValue=null;
+        // todo key是点v，目前value是{... prop}
+        // todo value改成object { 组别:prop }
         this.registerProps={};
         this.currentSelected = null;
         this.currentClicked = null;
@@ -389,6 +391,8 @@ export default {
         to:   e.dest
       }
     },
+    // TODO change to update mode from replace mode
+    // TODO 这个地方的props存储方式，变成按照分组存储
     registerTheProps(data){
         let props = _.get(data,'data.data.props')
         if(props){
@@ -547,7 +551,10 @@ export default {
         this.$message.info('此查询可能较慢，请耐心等待',1);
         this.showKeyPathPending = true
         this.searching = true
-        axiosRequst(this.showKeyPathAPI(value,keyPathOnly))
+        // TODO 这个地方的参数由一个变成多个，传入一个map，一个key对应一个参数
+        const showkeypathArgs = this.showKeyPathAPI(value,keyPathOnly)
+        
+        axiosRequst(showkeypathArgs)
          .then((data)=>this.dealResponse(data,()=>{
           this.searching = false
           this.showKeyPathPending=false
