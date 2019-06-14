@@ -164,7 +164,7 @@
 import CommonGraph from '../common/CommonGraph'
 import Layout from '../common/Layout'
 import _ from 'lodash'
-import axiosRequst from '../../util/httpUtils'
+import {axiosRequst} from '../../util/httpUtils'
 
 Date.prototype.format = function(fmt) { 
      var o = { 

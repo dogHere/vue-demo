@@ -1,6 +1,8 @@
 
 import axios from 'axios';
 
+let errorHandle;
+
 function axiosRequst(options) {
     const { type = 'get', path, params, data } = options;
   
@@ -12,9 +14,17 @@ function axiosRequst(options) {
     }
     // console.log("axiosRequst to ",url);
     if (type === 'get') {
-      return  axios.get(url);
+      return  axios.get(url).catch(err=>{
+        if(errorHandle){
+          errorHandle(err)
+        }
+      });
     }else{
-      return  axios.post(url,data);
+      return  axios.post(url,data).catch(err=>{
+        if(errorHandle){
+          errorHandle(err)
+        }
+      });
     }
   }
   
@@ -32,5 +42,12 @@ function convertToArgs(arg) {
   
     return res;
 }
+
+function setErrorHandle(handle){
+  errorHandle = handle
+}
   
-export default axiosRequst
+export   {
+  axiosRequst,
+  setErrorHandle
+}

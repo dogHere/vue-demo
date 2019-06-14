@@ -77,7 +77,7 @@
 
 <script>
 import CommonGraph from '../common/CommonGraph'
-import axiosRequst from '../../util/httpUtils'
+import {axiosRequst,setErrorHandle} from '../../util/httpUtils'
 import _ from 'lodash'
 
 
@@ -209,7 +209,12 @@ export default {
       }
 
   },
-
+  created() {
+    setErrorHandle((error)=>{
+      this.$message.error(error)
+    })
+  }
+  ,
   data(){
     return {
         registerV:{},
@@ -415,6 +420,7 @@ export default {
         if(thenDo){
           thenDo()
         }
+        this.$message.info('查询结果已经返回',1);
     }
     ,lookupUpstream(){
         if(this.currentClicked){
@@ -447,6 +453,11 @@ export default {
         const value = this.searchTableValue;
         this.searchedList[value]=true
         
+        if(this.searchTarget==="keyPathOnly"||this.searchTarget==="keyPath"){
+          console.log("此查询可能较慢，请耐心等待")
+           this.$message.info('此查询可能较慢，请耐心等待',1);
+        }
+
         if(this.searchTarget==="keyPathOnly"){
             this.showKeyPath(value,true)
         }else if(this.searchTarget==="keyPath"){

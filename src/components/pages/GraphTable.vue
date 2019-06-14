@@ -118,7 +118,7 @@
 <script>
 import Layout from '../common/Layout'
 import CommonGraph from '../common/CommonGraph'
-import axiosRequst from '../../util/httpUtils'
+import {axiosRequst} from '../../util/httpUtils'
 import _ from 'lodash'
 
 

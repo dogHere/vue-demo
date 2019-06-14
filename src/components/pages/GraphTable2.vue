@@ -60,7 +60,7 @@
 
 <script>
 import Layout from '../common/Layout'
-import axiosRequst from '../../util/httpUtils'
+import {axiosRequst} from '../../util/httpUtils'
 import _ from 'lodash'
 import GraphView from './GraphView'
 
