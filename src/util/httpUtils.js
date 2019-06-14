@@ -15,12 +15,14 @@ function axiosRequst(options) {
     // console.log("axiosRequst to ",url);
     if (type === 'get') {
       return  axios.get(url).catch(err=>{
+        console.log(err)
         if(errorHandle){
           errorHandle(err)
         }
       });
     }else{
       return  axios.post(url,data).catch(err=>{
+        console.log(err)
         if(errorHandle){
           errorHandle(err)
         }

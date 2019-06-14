@@ -17,6 +17,30 @@
            :addOtherListen="addOtherListen"
            :searchTableDefault="searchTableDefault"
            >
+          <template slot="moreButton">
+            <div style="margin-right:10px;">
+                <a-popover
+                      title="配置"
+                      trigger="click"
+                      placement="bottomLeft"
+                    >
+                        <a-button class="buttonItem"  type="primary"  > 配置 </a-button>
+                        <template slot="content">
+                          <div>
+                             <div style="padding-bottom:10px">
+                               <font color="red">pDate,格式yyyyMMdd</font>
+                             </div>
+                              <div style="padding-bottom:10px">
+                                <a-input placeholder="pDate,格式yyyyMMdd" @change="pDateHandle" :value="pDate===null?defaultPate():pDate"> </a-input>
+                             </div>
+                          </div>
+                        </template>
+                    
+               </a-popover>
+            </div>
+          </template>
+
+
            <template slot="searchTable">
              <div>
              clusterId
@@ -82,6 +106,48 @@ import _ from 'lodash'
 import GraphView from './GraphView'
 
 
+Date.prototype.format = function(fmt) { 
+     var o = { 
+        "M+" : this.getMonth()+1,                 //月份 
+        "d+" : this.getDate(),                    //日 
+        "h+" : this.getHours(),                   //小时 
+        "m+" : this.getMinutes(),                 //分 
+        "s+" : this.getSeconds(),                 //秒 
+        "q+" : Math.floor((this.getMonth()+3)/3), //季度 
+        "S"  : this.getMilliseconds()             //毫秒 
+    }; 
+    if(/(y+)/.test(fmt)) {
+            fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
+    }
+     for(var k in o) {
+        if(new RegExp("("+ k +")").test(fmt)){
+             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+         }
+     }
+    return fmt; 
+} 
+
+
+function theDefaultPate(){
+  let date = new Date();
+          date.setDate(date.getDate() - 1)
+   return date.format("yyyyMMdd")
+}
+
+let pDateGlobal = theDefaultPate()
+
+function handleUnixTime(time){
+  if(!time)
+      return "-"; 
+  return new Date(time).format("yyyy-MM-dd hh:mm:ss")
+}
+function handleNas(t){
+  if(!t){
+    return "-"
+  }
+  return Math.round(t/60*100)/100+"分钟"
+}
+
 export default {
   name: 'graph-task',
   components: {
@@ -97,12 +163,22 @@ export default {
         
         searchTableValue:null,
         searchTableDefault:"keyPath",
-        clusters:["airflow_dw2","airflow_global","airflow_idp1"],
+        clusters:["airflow_dw2","airflow_abtest","airflow_global","airflow_idp1","airflow_global_prod","airflow_ods","airflow_privacy"],
         searchClusterValue:null,
+        pDate:pDateGlobal,
     }
   },
 
   methods: {
+
+    pDateHandle(value){
+      if(value){
+        this.pDate=value.target.value.trim()
+        pDateGlobal = this.pDate;
+      }
+    }
+    ,
+
      toTask(d){
       if(d){
         return d.split("@")[2]
@@ -155,7 +231,7 @@ export default {
         axiosRequst({
                 path: '/internal/dg/findwhyslow/graph/task/search',
                 params: {
-                  pDate:"20190610",
+                  pDate:pDateGlobal,
                   task:value
                 },
                 type:'get'
@@ -183,7 +259,7 @@ export default {
         axiosRequst({
                 path: '/internal/dg/findwhyslow/graph/dag/search',
                 params: {
-                  pDate:"20190610",
+                  pDate:pDateGlobal,
                   dag:value
                 },
                 type:'get'
@@ -208,7 +284,7 @@ export default {
       axiosRequst({
           path: '/internal/dg/findwhyslow/graph/task/lookup/dagReadyTime',
           params: {
-            pDate:"20190610",
+            pDate:pDateGlobal,
             task:v
           },
           type:'get'
@@ -232,7 +308,7 @@ export default {
           path: '/internal/dg/findwhyslow/graph/task/upstream2',
           params: {
               task:value,
-              pDate:"20190610",
+              pDate:pDateGlobal,
           },
           type:'get'
         }
@@ -242,7 +318,7 @@ export default {
             path: '/internal/dg/findwhyslow/graph/task/downstream2',
             params: {
                 task:value,
-                pDate:"20190610",
+                pDate:pDateGlobal,
 
             },
             type:'get'
@@ -255,7 +331,7 @@ export default {
             params: {
                 task:v1,
                 task2:v2,
-                pDate:"20190610",
+                pDate:pDateGlobal,
                 
             } ,
             type:'get'
@@ -268,7 +344,7 @@ export default {
           params: {
               task:v,
               keyPathOnly,
-              pDate:"20190610",
+              pDate:pDateGlobal,
               
           },
           type:'get'
@@ -286,17 +362,23 @@ export default {
             }
         }
     },
+
+    
+
     handleDescProps:(prop)=>{
         return {
           "clusterId":prop["clusterId"],
           "dagId":prop["dagId"],
           "taskId":prop["taskId"],
-          "keyPath":prop["keyPath"],
-          "executionDate":prop["executionDate"],
-          "开始时间":prop["startDate"],
-          "结束时间":prop["endDate"],
-          "执行时长":prop["duration"],
+          "关键路径":prop["keyPath"],
+          "executionDate":handleUnixTime(prop["executionDate"]),
+          "开始时间":handleUnixTime(prop["startDate"]),
+          "结束时间":handleUnixTime(prop["endDate"]),
+          "执行时长":handleNas(prop["duration"]),
           "状态":prop["state"],
+          "tryNumber":prop["tryNumber"],
+          "operator":prop["operator"]
+
         }
     },
 

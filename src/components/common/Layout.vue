@@ -68,11 +68,11 @@ export default {
         //   icon: 'rocket',
         //   title: '开发',
         // },
-        // {
-        //   key: 'graph-task',
-        //   icon: 'rocket',
-        //   title: 'Task级别血缘-图可视化'
-        // },
+        {
+          key: 'graph-task',
+          icon: 'rocket',
+          title: 'Task级别血缘-图可视化'
+        },
         // {
         //   key: 'urls',
         //   icon: 'appstore',

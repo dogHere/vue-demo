@@ -4,10 +4,10 @@
 
              <template slot="header">
                 <slot name="moreButton"></slot>
-                <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupUpstream" >显示节点上游</a-button>
-                <a-button class="buttonItem" :disabled="!currentClicked" type="primary" @click="lookupDownstream" >显示节点下游</a-button>
-                <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupKeyPath" >显示关键路径</a-button>
-                <a-button class="buttonItem" :disabled="!currentSelected || currentSelected.length<2"  type="primary" @click="lookupPath" >显示两点之间路径</a-button>
+                <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupUpstream" :loading="showUpstreamPending" >显示节点上游</a-button>
+                <a-button class="buttonItem" :disabled="!currentClicked" type="primary" @click="lookupDownstream" :loading="showDownstreamPending" >显示节点下游</a-button>
+                <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupKeyPath" :loading="showKeyPathPending" >显示关键路径</a-button>
+                <a-button class="buttonItem" :disabled="!currentSelected || currentSelected.length<2"  type="primary" @click="lookupPath" :loading="showPathPending" >显示两点之间路径</a-button>
                 <div style="display:'inline-block'">
                     <a-popover
                       title="查找"
@@ -36,7 +36,7 @@
                               -->
                               <slot name="searchTable"></slot>
 
-                              <br/>
+                              
                               <br/>
                               <a-radio-group :defaultValue="searchTableDefault" @change="searchTargetChange" buttonStyle="solid">
                               
@@ -80,7 +80,7 @@ import CommonGraph from '../common/CommonGraph'
 import {axiosRequst,setErrorHandle} from '../../util/httpUtils'
 import _ from 'lodash'
 
-
+console.log("setErrorHandle",setErrorHandle)
 export default {
   name: 'GraphView',
   components: {
@@ -210,9 +210,13 @@ export default {
 
   },
   created() {
-    setErrorHandle((error)=>{
-      this.$message.error(error)
-    })
+      this.setErrorHandle((error)=>{
+         console.log("error from message",error)
+         if(error&&error.response&&error.response.data){
+             this.$message.error("error: response code is "+error.response.status+"."+error.response.data)
+         }
+         
+      })
   }
   ,
   data(){
@@ -228,6 +232,14 @@ export default {
         currentSelected:null,
         currentClicked:null,
         currentShowData:null,
+        setErrorHandle:setErrorHandle,
+        showKeyPathPending:false,
+        showPathPending:false,
+        showDownstreamPending:false,
+        showUpstreamPending:false
+
+
+
     }
   },
   methods: {
@@ -380,6 +392,10 @@ export default {
     renderTheGraph(data,mode,focus){
         let graph = _.get(data,'data.data.graph');
         if(graph&&this.$refs.commonGraph){
+            if(graph.v.length===0){
+              this.$message.info("无数据")
+            }
+
             this.$refs.commonGraph.update({
                 v:graph.v,
                 e:graph.e,
@@ -422,6 +438,7 @@ export default {
         }
         this.$message.info('查询结果已经返回',1);
     }
+
     ,lookupUpstream(){
         if(this.currentClicked){
           this.lookupList[this.currentClicked]=true;
@@ -449,14 +466,14 @@ export default {
       }
     }
     ,showEvent(){
+
       if(this.searchTableValue&&this.searchTableData&&this.searchTableData.includes(this.searchTableValue)){
         const value = this.searchTableValue;
         this.searchedList[value]=true
         
-        if(this.searchTarget==="keyPathOnly"||this.searchTarget==="keyPath"){
-          console.log("此查询可能较慢，请耐心等待")
-           this.$message.info('此查询可能较慢，请耐心等待',1);
-        }
+        // if(this.searchTarget==="keyPathOnly"||this.searchTarget==="keyPath"){
+
+        // }
 
         if(this.searchTarget==="keyPathOnly"){
             this.showKeyPath(value,true)
@@ -469,34 +486,52 @@ export default {
         }
       }
     }
+
+        // showKeyPathPending:false,
+        // showPathPending:false,
+        // showDownstreamPending:false,
+        // showUpstreamPending:false
+
+
     ,showUpstream(value){
       if(value){
+           this.$message.info('此查询可能较慢，请耐心等待',1);
             this.searching = true
+            this.showUpstreamPending=true
             axiosRequst(this.showUpstreamAPI(value)).then((data)=>this.dealResponse(data,()=>{
             this.searching = false
+            this.showUpstreamPending=false
             }))
       }
     }
     ,showDownstream(value){
       if(value){
+            this.$message.info('此查询可能较慢，请耐心等待',1);
+            this.showDownstreamPending = true
             this.searching = true
             axiosRequst(this.showDownstreamAPI(value)).then((data)=>this.dealResponse(data,()=>{
             this.searching = false
+            this.showDownstreamPending =false
             }))
       }
     }
     ,showPath(value1,value2){
       if(value1&&value2){
+        this.showPathPending = true
         axiosRequst(this.showPathAPI(value1,value2)).then((data)=>this.dealResponse(data,()=>{
+          this.showPathPending=false
         }))
       }
     }
     ,showKeyPath(value,keyPathOnly){
       if(value){
+        this.$message.info('此查询可能较慢，请耐心等待',1);
+        this.showKeyPathPending = true
         this.searching = true
         axiosRequst(this.showKeyPathAPI(value,keyPathOnly))
          .then((data)=>this.dealResponse(data,()=>{
           this.searching = false
+          this.showKeyPathPending=false
         }))
       }
     },

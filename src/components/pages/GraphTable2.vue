@@ -24,9 +24,13 @@
                         <a-button class="buttonItem"  type="primary"  > 配置 </a-button>
                         <template slot="content">
                           <div>
-                             <font color="red">pDate,格式yyyyMMdd</font><br/> 
+                             <div style="padding-bottom:10px">
+                                <font color="red" style="panding-top:10px">pDate,格式yyyyMMdd</font>
+                             </div>
+                              <div style="padding-bottom:10px">
+                             注：因数据同步原因，就绪时间日期要比该日期早一天
+                             </div>
                             <a-input placeholder="pDate,格式yyyyMMdd" @change="pDateHandle" :value="pDate===null?defaultPate():pDate"> </a-input>
-
                           </div>
                         </template>
                     
@@ -36,11 +40,14 @@
 
            <template slot="searchTable">
              <div>
+               输入[库名.表名],或者报表名
+               <br/>
+               
                <a-select
                   showSearch
                   :value="searchTableValue"
                   placeholder="input search text"
-                  style="width: 500px"
+                  style="width: 500px;padding-top: 10px;"
                   :defaultActiveFirstOption="false"
                   :showArrow="false"
                   :filterOption="false"
@@ -48,6 +55,7 @@
                   @change="handleChangeTable"
                   :notFoundContent="null"
                 >
+                  
                   <a-select-option v-for="d in searchTableData" :key="d">{{d}}</a-select-option>
                 </a-select>
              </div>
