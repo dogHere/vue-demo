@@ -141,7 +141,7 @@ export default {
           type:[Function],
           
           default:(v,keyPathOnly)=>{
-              return {
+              return [{
                 path: '/internal/dg/findwhyslow/graph/table/keypath2',
                 params: {
                     table:v,
@@ -149,8 +149,9 @@ export default {
                     pDate:"20190610",
                     
                 },
-                type:'get'
-             }
+                type:'get',
+                groupId:"20190610",
+             }]
           }
       },
       handleStr2Obj:{
@@ -159,7 +160,7 @@ export default {
             if(!v){
                 return {}
             }else{
-                let arr=v.split(".")
+                let arr=v.str.split(".")
                 return {
                     dbName:arr[0],
                     tbName:arr[1]
@@ -225,6 +226,7 @@ export default {
   ,
   data(){
     return {
+        registerVGroup:{},
         registerV:{},
         registerVCnt:0,
         searching:false,
@@ -303,7 +305,12 @@ export default {
       if(!this.registerV[v]){
           this.registerV[v] = this.registerVCnt;
           this.registerVCnt = this.registerVCnt+1;
+         
       }
+      if(!this.registerVGroup[v]){
+          this.registerVGroup[v]=[]
+      }
+      this.registerVGroup[v].push(v.groupId)
   },
   
   str2Obj(v){
@@ -311,27 +318,36 @@ export default {
   }
 
   ,
+  /**
+    {groupId:{prop}}
+   */
   descProps(prop){
     return this.handleDescProps(prop)
   }
   ,
   convertToProps(v,prop){
     const ob = this.str2Obj(v);
-    let res = {
-      ... ob 
-    }
-    
+    let res = {}
+    res[v.groupId] = ob;
+
     if(prop){
-      Object.keys(prop).forEach(k=>{
-         res[k]=prop[k]
+      Object.keys(prop).forEach(group=>{
+         if(!res[group]){
+           res[group] = {}
+         }
+         
+         Object.keys(prop[group]).forEach(p=>{
+              res[group][p]=prop[group][p]
+         })
       })
     }
     return res;
   }
   ,
 
+  
   convertToTitle(v,prop){
-    const ob = this.descProps(this.convertToProps(v,prop))
+    const ob = this.descProps(this.convertToProps(this.normalStr2Obj(v),prop))
     let title = "";
     Object.keys(ob).forEach(k=>{
         title=title+k+":"+(ob[k]===undefined?"":ob[k])+"<br/>";
@@ -341,20 +357,20 @@ export default {
   }
   ,
   dealColor(v){
-
+    
     if(this.searchedList){
-      if(this.searchedList[v]){
+      if(this.searchedList[v.str]){
         return "lime";
       }
     }
 
     if(this.lookupList){
-      if(this.lookupList[v]){
+      if(this.lookupList[v.str]){
         return "#00ffff";
       }
     }
 
-    const prop = this.registerProps[v];
+    const prop = this.registerProps[v.str];
     if(prop){
       if(prop["keyPath"]){
         return "#859900";
@@ -366,16 +382,18 @@ export default {
       let v = null ;
       if(!origin){
           v = this.handle2StdV(tv)
+          v["groupId"] = tv.groupId;
       }else{
         v = tv;
       }
-       
+      
       this.register(v)
       const prop = this.registerProps[v];
+      console.log("convertToTitle",v)
       let title = this.convertToTitle(v,prop)
       
       return {
-            id:v
+            id:v.str
         ,label:this.getId(v)+"" 
         ,color:this.dealColor(v)
         ,title:title
@@ -397,17 +415,40 @@ export default {
         let props = _.get(data,'data.data.props')
         if(props){
           Object.keys(props).forEach((prop)=>{
-            this.registerProps[prop] = props[prop];
+            if(!this.registerProps[prop]){
+                this.registerProps[prop]={}
+            }
+            this.registerProps[prop][data.args.groupId] = props[prop];
           })
         }
-    } ,    
+    } ,
+    normalStr2Obj(str){
+        if(!str){
+          return {str:""}
+        }
+        if(typeof str === "string")
+          return {str:str}
+        return str;
+    }
+    ,  
+    registerGroupToVE(list,groupId){
+        if(list){
+          for(let i=0;i<list.length;i++){
+             if(list[i] instanceof String){
+               list[i]=this.normalStr2Obj(list[i])
+             }
+             list[i].groupId = groupId;
+          }
+        }
+    } , 
     renderTheGraph(data,mode,focus){
         let graph = _.get(data,'data.data.graph');
         if(graph&&this.$refs.commonGraph){
             if(graph.v.length===0){
               this.$message.info("无数据")
             }
-
+            this.registerGroupToVE(graph.v,data.args.groupId)
+            this.registerGroupToVE(graph.ve,data.args.groupId)
             this.$refs.commonGraph.update({
                 v:graph.v,
                 e:graph.e,
@@ -428,8 +469,9 @@ export default {
               this.currentClicked = v;
               
               const prop = this.registerProps[v];
-              
-              this.currentShowData = this.descProps(this.convertToProps(v,prop))
+              let nv = this.normalStr2Obj(v)
+
+              this.currentShowData = this.descProps(this.convertToProps(nv,prop))
             }
             this.currentSelected = parms.nodes;
           }else{
@@ -446,19 +488,20 @@ export default {
                 
               const prop = this.registerProps[v];
                 
-              this.currentShowData = this.descProps(this.convertToProps(v,prop))
+              let nv = this.normalStr2Obj(v)
+
+              this.currentShowData = this.descProps(this.convertToProps(nv,prop))
             }
         })
     } ,  
-     dealResponse(data,thenDo,mode,focus){
+     dealResponse(data,mode,focus){
+       console.log("dealResponse",data)
         if(!mode){
           mode = 'add'
         }
         this.registerTheProps(data)
         this.renderTheGraph(data,mode,focus)
-        if(thenDo){
-          thenDo()
-        }
+        
         this.$message.info('查询结果已经返回',1);
     }
 
@@ -521,10 +564,13 @@ export default {
            this.$message.info('此查询可能较慢，请耐心等待',1);
             this.searching = true
             this.showUpstreamPending=true
-            axiosRequst(this.showUpstreamAPI(value)).then((data)=>this.dealResponse(data,()=>{
-            this.searching = false
-            this.showUpstreamPending=false
-            }))
+            Promise.all([axiosRequst(this.showUpstreamAPI(value))
+                .then(this.dealResponse)
+            ])
+            .then(()=>{
+                 this.searching = false
+                 this.showUpstreamPending=false
+            })
       }
     }
     ,showDownstream(value){
@@ -532,18 +578,23 @@ export default {
             this.$message.info('此查询可能较慢，请耐心等待',1);
             this.showDownstreamPending = true
             this.searching = true
-            axiosRequst(this.showDownstreamAPI(value)).then((data)=>this.dealResponse(data,()=>{
-            this.searching = false
-            this.showDownstreamPending =false
-            }))
+            Promise.all([axiosRequst(this.showDownstreamAPI(value))
+                .then(this.dealResponse)
+            ]).then(()=>{
+              this.searching = false
+              this.showDownstreamPending =false
+            })
       }
     }
     ,showPath(value1,value2){
       if(value1&&value2){
         this.showPathPending = true
-        axiosRequst(this.showPathAPI(value1,value2)).then((data)=>this.dealResponse(data,()=>{
+        Promise.all([axiosRequst(this.showPathAPI(value1,value2))
+                .then(this.dealResponse)
+        ]).then(()=>{
           this.showPathPending=false
-        }))
+        })
+
       }
     }
     ,showKeyPath(value,keyPathOnly){
@@ -553,12 +604,14 @@ export default {
         this.searching = true
         // TODO 这个地方的参数由一个变成多个，传入一个map，一个key对应一个参数
         const showkeypathArgs = this.showKeyPathAPI(value,keyPathOnly)
-        
-        axiosRequst(showkeypathArgs)
-         .then((data)=>this.dealResponse(data,()=>{
-          this.searching = false
-          this.showKeyPathPending=false
-        }))
+        console.log("showkeypathArgs ",showkeypathArgs)
+        Promise.all(showkeypathArgs.map(arg=>{
+          return axiosRequst(arg).then(this.dealResponse)
+        })).then(()=>{
+             this.searching = false
+             this.showKeyPathPending=false
+        })
+
       }
     },
   },

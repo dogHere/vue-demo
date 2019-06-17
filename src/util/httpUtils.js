@@ -19,13 +19,20 @@ function axiosRequst(options) {
         if(errorHandle){
           errorHandle(err)
         }
+      }).then(response=>{
+        response.args = options
+        return response
       });
     }else{
-      return  axios.post(url,data).catch(err=>{
+      return  axios.post(url,data)
+      .catch(err=>{
         console.log(err)
         if(errorHandle){
           errorHandle(err)
         }
+      }).then(response=>{
+        response.args = options
+        return response
       });
     }
   }

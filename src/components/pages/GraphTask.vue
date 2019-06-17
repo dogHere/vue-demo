@@ -31,7 +31,20 @@
                                <font color="red">pDate,格式yyyyMMdd</font>
                              </div>
                               <div style="padding-bottom:10px">
-                                <a-input placeholder="pDate,格式yyyyMMdd" @change="pDateHandle" :value="pDate===null?defaultPate():pDate"> </a-input>
+
+                                <a-select
+                                  mode="tags"
+                                  style="width: 100%"
+                                  @change="pDateHandle"
+                                  placeholder="pDate"
+                                  :value="pDate===null?defaultPate():pDate"
+                                >
+                                    <a-select-option v-for="i in days" :key="i" >{{i}}</a-select-option>
+                                </a-select>
+
+                                <!--
+                                 <a-input placeholder="pDate,格式yyyyMMdd" @change="pDateHandle" :value="pDate===null?defaultPate():pDate"> </a-input>
+                                -->
                              </div>
                           </div>
                         </template>
@@ -135,7 +148,7 @@ function theDefaultPate(){
    return date.format("yyyyMMdd")
 }
 
-let pDateGlobal = theDefaultPate()
+let pDateGlobal = [theDefaultPate()]
 
 function handleUnixTime(time){
   if(!time)
@@ -148,6 +161,21 @@ function handleNas(t){
   }
   return Math.round(t/60*100)/100+"分钟"
 }
+
+function createDays(){
+  let date = new Date();
+  let days = [];
+  for(let i=0;i<100;i++){
+    let date2 = new Date();
+    date2.setDate((date.getDate() - i))
+    days.push(date2.format("yyyyMMdd"))
+  }
+  return days;
+
+}
+
+
+let days =  createDays()
 
 export default {
   name: 'graph-task',
@@ -168,6 +196,7 @@ export default {
         searchClusterValue:null,
         pDate:pDateGlobal,
         searchDagPending:false,
+        days:days,
     }
   },
 
@@ -175,7 +204,8 @@ export default {
 
     pDateHandle(value){
       if(value){
-        this.pDate=value.target.value.trim()
+        console.log(value)
+        this.pDate=value;
         pDateGlobal = this.pDate;
       }
     }
@@ -194,7 +224,7 @@ export default {
     }
     ,
     handle2StdV:(v)=>{
-        return v.theKey
+        return {str:v.theKey}
     }
     ,handle2StdE:(e)=>{
         return {
@@ -239,7 +269,7 @@ export default {
                 },
                 type:'get'
         }).then(data=>{
-            
+            console.log(data," search data")
             let list = _.get(data,'data.data');
             if(list&&list.length>0){
                 this.searchTableData = list;
@@ -338,7 +368,7 @@ export default {
           
     },
     showPathAPI:(v1,v2)=>{
-          return {
+          return [{
             path: '/internal/dg/findwhyslow/graph/task/path',
             params: {
                 task:v1,
@@ -347,52 +377,63 @@ export default {
                 
             } ,
             type:'get'
-          }
+          }]
           
     },
     showKeyPathAPI:(v,keyPathOnly)=>{
-        return {
-          path: '/internal/dg/findwhyslow/graph/task/keypath2',
-          params: {
-              task:v,
-              keyPathOnly,
-              pDate:pDateGlobal,
-              
-          },
-          type:'get'
-        }
+        return pDateGlobal.map(p=>{
+          console.log("showkeypathArgs --> ",p)
+          return {
+            path: '/internal/dg/findwhyslow/graph/task/keypath2',
+            params: {
+                task:v,
+                keyPathOnly,
+                pDate:p,
+                
+            },
+            type:'get',
+            groupId:p,
+          }
+        })
+        
     },
     handleStr2Obj:(v)=>{
         if(!v){
             return {}
         }else{
-            let arr=v.split("@")
+            console.log("handleStr2Obj",v);
+            let arr=v.str.split("@")
             return {
                 clusterId:arr[0],
                 dagId:arr[1],
-                taskId:arr[1]
+                taskId:arr[2],
+                pDate:v.groupId,
             }
         }
     },
 
     
 
-    handleDescProps:(prop)=>{
-        return {
-          "clusterId":prop["clusterId"],
-          "dagId":prop["dagId"],
-          "taskId":prop["taskId"],
-          "关键路径":prop["keyPath"],
-          "executionDate":handleUnixTime(prop["executionDate"]),
-          "开始时间":handleUnixTime(prop["startDate"]),
-          "结束时间":handleUnixTime(prop["endDate"]),
-          "执行时长":handleNas(prop["duration"]),
-          "状态":prop["state"],
-          "tryNumber":prop["tryNumber"],
-          "operator":prop["operator"],
-          "pDate":pDateGlobal
-
-        }
+    handleDescProps:(props)=>{
+        let res = {}
+        Object.keys(props).forEach(group=>{
+            let prop = props[group]
+            res[group] = {
+              "clusterId":prop["clusterId"],
+              "dagId":prop["dagId"],
+              "taskId":prop["taskId"],
+              "关键路径":prop["keyPath"],
+              "executionDate":handleUnixTime(prop["executionDate"]),
+              "开始时间":handleUnixTime(prop["startDate"]),
+              "结束时间":handleUnixTime(prop["endDate"]),
+              "执行时长":handleNas(prop["duration"]),
+              "状态":prop["state"],
+              "tryNumber":prop["tryNumber"],
+              "operator":prop["operator"],
+              "pDate":group
+            }
+        })
+        return res;
     },
 
   },
