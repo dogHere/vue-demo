@@ -15,7 +15,7 @@
            :handle2StdE="handle2StdE"
            :searchTableValue="searchTableValue"
            :addOtherListen="addOtherListen"
-           :searchTableDefault="searchTableDefault"
+           :searchGroups="searchGroups"
            >
           <template slot="moreButton">
             <div style="margin-right:10px;">
@@ -177,6 +177,14 @@ function createDays(){
 
 let days =  createDays()
 
+
+function takeMax(days){
+  if(!days){
+    return ""
+  }
+  let res =  Math.max(... days)
+  return res;
+}
 export default {
   name: 'graph-task',
   components: {
@@ -191,23 +199,46 @@ export default {
         searchDagValue:null,
         
         searchTableValue:null,
-        searchTableDefault:"keyPath",
         clusters:["airflow_dw2","airflow_abtest","airflow_global","airflow_idp1","airflow_global_prod","airflow_ods","airflow_privacy"],
         searchClusterValue:null,
         pDate:pDateGlobal,
         searchDagPending:false,
         days:days,
+        searchGroups:pDateGlobal,
     }
   },
 
   methods: {
 
     pDateHandle(value){
+      console.log("reset pDate value",value)
+      let changed=false 
       if(value){
+        if(value.length>3){
+          this.$message.info("pDate 限填3个")
+          return 
+        }
+        if(this.pDate){
+            if(! _.isEqual(this.pDate.sort(), value.sort())){
+               changed = true 
+            }
+        }else{
+            changed = true;
+        }
+       
         console.log(value)
         this.pDate=value;
         pDateGlobal = this.pDate;
       }
+      console.log("pDateHandle changed",changed)
+      if(changed){
+        console.log("reset pDate",this.pDate )
+        this.searchGroups =value
+        console.log("reset pDate  this.searchGroups",this.searchGroups )
+        this.$refs.GraphView.reset()
+        
+      }
+
     }
     ,
 
@@ -257,6 +288,7 @@ export default {
       this.searchTableValue = value
       
     }
+    
     ,
     handleSearchTable(value){
       if(value){
@@ -264,7 +296,7 @@ export default {
         axiosRequst({
                 path: '/internal/dg/findwhyslow/graph/task/search',
                 params: {
-                  pDate:pDateGlobal,
+                  pDate:takeMax(pDateGlobal),
                   task:value
                 },
                 type:'get'
@@ -295,7 +327,7 @@ export default {
         axiosRequst({
                 path: '/internal/dg/findwhyslow/graph/dag/search',
                 params: {
-                  pDate:pDateGlobal,
+                  pDate:takeMax(pDateGlobal),
                   dag:value
                 },
                 type:'get'
@@ -346,39 +378,46 @@ export default {
       }
     },
     showUpstreamAPI:(value)=>{
-        return {
+      return pDateGlobal.map(p=>{
+       return {
           path: '/internal/dg/findwhyslow/graph/task/upstream2',
           params: {
               task:value,
-              pDate:pDateGlobal,
+              pDate:p,
           },
-          type:'get'
+          type:'get',
+          groupId:p,
         }
+      })
     },
     showDownstreamAPI:(value)=>{
+      return  pDateGlobal.map(p=>{
           return {
             path: '/internal/dg/findwhyslow/graph/task/downstream2',
             params: {
                 task:value,
-                pDate:pDateGlobal,
+                pDate:p,
 
             },
             type:'get'
+            ,groupId:p
           }
-          
+      })    
     },
     showPathAPI:(v1,v2)=>{
-          return [{
+      return pDateGlobal.map(p=>{
+         return {
             path: '/internal/dg/findwhyslow/graph/task/path',
             params: {
                 task:v1,
                 task2:v2,
-                pDate:pDateGlobal,
+                pDate:p,
                 
             } ,
-            type:'get'
-          }]
-          
+            type:'get',
+            groupId:p
+          }
+      })  
     },
     showKeyPathAPI:(v,keyPathOnly)=>{
         return pDateGlobal.map(p=>{

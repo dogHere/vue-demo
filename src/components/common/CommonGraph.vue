@@ -37,8 +37,8 @@
                   :edges = "network.edges"
                   :options="network.options">
                 </network>
-              </div>
-           </div>  
+           </div>
+         </div>  
  </div>           
 </template>
 <script>
@@ -55,8 +55,8 @@ let options = {
     hierarchical: {
       direction: "UD",
       sortMethod: "directed",
-      levelSeparation:100,
-      nodeSpacing: 100,
+      levelSeparation:200,
+      nodeSpacing: 200,
       treeSpacing:100,
       blockShifting: false,
       edgeMinimization: true,

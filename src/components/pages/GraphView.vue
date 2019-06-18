@@ -42,7 +42,7 @@
 
                               
                               <br/>
-                              <a-radio-group :defaultValue="searchTableDefault" @change="searchTargetChange" buttonStyle="solid">
+                              <a-radio-group :value="computedSearchGroups&&searchTarget"  :defaultValue="searchTarget" @change="searchTargetChange" buttonStyle="solid">
                               
                                 <a-radio-button value="keyPath">关键路径</a-radio-button>
                                 <a-radio-button value="keyPathOnly">关键路径Only</a-radio-button>
@@ -62,18 +62,31 @@
             </template>
               
             <template slot="status">
+                <div style="height:400%">
+                  <a-table :columns="toKeys(currentShowData)" :dataSource="currentShowData===null?[]:toValue(currentShowData)"
+                    :scroll="{ x: 1500 }" :pagination="false" 
+                    
+                  >
+                  </a-table>
+                </div>
+
+       
+
+                  <!---
                   <a-card    :bodyStyle="{padding:'0px',height: '50px' }"
                               :hoverable="false"
+                              v-if="Object.keys(currentShowData===null?{}:currentShowData).length<=1"
                               class="card-warpper">
-                        <div class="cardItem">
-                          <div v-for="key in Object.keys(currentShowData===null?{}:currentShowData)"
+                        <div class="cardItem" >
+                          <div v-for="key in Object.keys(currentShowData===null?{}:takeFirst(currentShowData))"
                               :key="key"
                               class="item">
-                            <div class="value"><font style="font-weight: bold">{{ key }}</font>: {{ currentShowData[key] }}</div>
+                            <div class="value"><font style="font-weight: bold">{{ key }}</font>: {{ takeFirst(currentShowData)[key] }}</div>
 
                           </div>
                         </div>
                   </a-card>
+                  -->
             </template>
          </CommonGraph>
 </div>
@@ -209,7 +222,13 @@ export default {
       searchTableDefault:{
         type:[String],
         default:()=>{
-          return "keyPath"
+          return null;
+        }
+      },
+      searchGroups:{
+        type:[Array],
+        default:()=>{
+          return []
         }
       }
 
@@ -234,7 +253,7 @@ export default {
         lookupList:{},
         // searchTableValue:null,
         registerProps:{},
-        searchTarget:"keyPath",
+        searchTarget: (this.searchGroups.length>1)?'keyPathOnly':'keyPath',
         currentSelected:null,
         currentClicked:null,
         currentHover:null,
@@ -244,13 +263,22 @@ export default {
         showPathPending:false,
         showDownstreamPending:false,
         showUpstreamPending:false,
+        hmSelect:false,
 
 
 
     }
   },
+  computed: {
+    computedSearchGroups(){
+      this.searchTarget =  (this.searchGroups.length>1)?'keyPathOnly':'keyPath'
+      return true;
+    }
+  }
+  ,
   methods: {
     reset(){
+
         this.$refs.commonGraph.clearAll()
         this.registerV={}
         this.registerVCnt=0;
@@ -265,10 +293,51 @@ export default {
         this.currentHover = null;
         this.lookupList={};
         this.currentShowData = null
+        this.hmSelect =false;
+        this.computedSearchGroups;
     }
 
-  ,
 
+  ,
+  takeFirst(obj){
+    if(obj){
+      let res = obj[Object.keys(obj)[0]]
+      return res;
+    }
+  }
+  ,
+  toValue(obj){
+      if(obj){
+        let arr=[]
+        Object.keys(obj).forEach(k=>{
+          
+          arr.push(obj[k])
+        })
+        return arr;
+      }
+  }
+  ,
+    toKeys(obj){
+      let has={}
+      let coloms = []
+      if(obj){
+        
+        Object.keys(obj).forEach(k=>{
+            Object.keys(obj[k]).forEach(tk=>{
+              if(!has[tk]){
+                 coloms.push({title:tk,dataIndex:tk})
+                 has[tk]=true;
+              }else{
+
+              }
+                
+            })  
+        })
+        
+      }
+      return coloms
+  }
+  ,
     handleHotUpdateV(v,prop){
         if(!v || !prop){
           return 
@@ -289,28 +358,30 @@ export default {
     ,
 
     searchTargetChange(value){
+      console.log(this.searchGroups,'searchGroups')
         if(value&&value.target.value){
+          this.hmSelect = true;
           this.searchTarget = value.target.value
         }
     },
 
   getId(v){
-      if(!this.registerV[v]){
+      if(!this.registerV[v.str]){
           this.register(v)
       }
-      return this.registerV[v]
+      return this.registerV[v.str]
   }
   ,
   register(v){
-      if(!this.registerV[v]){
-          this.registerV[v] = this.registerVCnt;
+      if(!this.registerV[v.str]){
+          this.registerV[v.str] = this.registerVCnt;
           this.registerVCnt = this.registerVCnt+1;
          
       }
-      if(!this.registerVGroup[v]){
-          this.registerVGroup[v]=[]
+      if(!this.registerVGroup[v.str]){
+          this.registerVGroup[v.str]=[]
       }
-      this.registerVGroup[v].push(v.groupId)
+      this.registerVGroup[v.str].push(v.groupId)
   },
   
   str2Obj(v){
@@ -325,15 +396,19 @@ export default {
     return this.handleDescProps(prop)
   }
   ,
+  /**
+  这个的v，可能没有group
+   */
   convertToProps(v,prop){
     const ob = this.str2Obj(v);
     let res = {}
-    res[v.groupId] = ob;
 
     if(prop){
       Object.keys(prop).forEach(group=>{
          if(!res[group]){
-           res[group] = {}
+           res[group] = {
+             ... ob
+           }
          }
          
          Object.keys(prop[group]).forEach(p=>{
@@ -345,13 +420,31 @@ export default {
   }
   ,
 
-  
+
+  convertToTableTitle(ob){
+      let title = "多个数据：<br/>"
+      Object.keys(ob).forEach(k=>{
+        title+=k+"<br>"
+      })
+      return title;
+  }
+  ,
+  /**
+    v with group
+    prop with group
+   */
   convertToTitle(v,prop){
-    const ob = this.descProps(this.convertToProps(this.normalStr2Obj(v),prop))
+    let ob = this.descProps(this.convertToProps(this.normalStr2Obj(v),prop))
     let title = "";
-    Object.keys(ob).forEach(k=>{
-        title=title+k+":"+(ob[k]===undefined?"":ob[k])+"<br/>";
-    })
+    if(Object.keys(ob).length==1){
+      ob = ob[Object.keys(ob)[0]]
+      Object.keys(ob).forEach(k=>{
+          title=title+k+":"+(ob[k]===undefined?"":ob[k])+"<br/>";
+      })
+    }else{
+      title=this.convertToTableTitle(ob)
+    }
+
     
     return title;
   }
@@ -372,12 +465,34 @@ export default {
 
     const prop = this.registerProps[v.str];
     if(prop){
-      if(prop["keyPath"]){
+      let keypath=false
+      
+      Object.keys(prop).forEach(group=>{
+        if(prop[group]["keyPath"]){
+            keypath=true
+        }
+      })
+      if(keypath){
         return "#859900";
       }
     }
   }
   ,
+  convertToLabel(v,prop){
+    let ob = this.descProps(this.convertToProps(this.normalStr2Obj(v),prop))
+    let label = "";
+    label+=this.getId(v)
+    
+    // if(Object.keys(ob).length>1){
+      label+="\n"
+      Object.keys(ob).forEach(k=>{
+        label+=k+"\n"
+      })
+    // }
+
+    
+    return label;
+  },
    dealV (tv,origin){
       let v = null ;
       if(!origin){
@@ -388,13 +503,13 @@ export default {
       }
       
       this.register(v)
-      const prop = this.registerProps[v];
+      const prop = this.registerProps[v.str];
       console.log("convertToTitle",v)
       let title = this.convertToTitle(v,prop)
       
       return {
             id:v.str
-        ,label:this.getId(v)+"" 
+        ,label:this.convertToLabel(v,prop)
         ,color:this.dealColor(v)
         ,title:title
        , shape: 'ellipse'
@@ -434,7 +549,7 @@ export default {
     registerGroupToVE(list,groupId){
         if(list){
           for(let i=0;i<list.length;i++){
-             if(list[i] instanceof String){
+             if(typeof list[i]==="string"){
                list[i]=this.normalStr2Obj(list[i])
              }
              list[i].groupId = groupId;
@@ -475,24 +590,24 @@ export default {
             }
             this.currentSelected = parms.nodes;
           }else{
-            this.currentSelected = null;
-            this.currentClicked = null;
-            this.currentShowData = null;
-            this.currentHover = null;
+            // this.currentSelected = null;
+            // this.currentClicked = null;
+            // this.currentShowData = null;
+            // this.currentHover = null;
           }
         })
 
-        this.$refs.commonGraph.getNetwork().on('showPopup',(v)=>{
-            if(v){
-              this.currentHover = v;
+        // this.$refs.commonGraph.getNetwork().on('showPopup',(v)=>{
+        //     if(v){
+        //       this.currentHover = v;
                 
-              const prop = this.registerProps[v];
+        //       const prop = this.registerProps[v];
                 
-              let nv = this.normalStr2Obj(v)
+        //       let nv = this.normalStr2Obj(v)
 
-              this.currentShowData = this.descProps(this.convertToProps(nv,prop))
-            }
-        })
+        //       this.currentShowData = this.descProps(this.convertToProps(nv,prop))
+        //     }
+        // })
     } ,  
      dealResponse(data,mode,focus){
        console.log("dealResponse",data)
@@ -532,7 +647,7 @@ export default {
       }
     }
     ,showEvent(){
-
+      console.log("searchTarget",this.searchTarget)
       if(this.searchTableValue&&this.searchTableData&&this.searchTableData.includes(this.searchTableValue)){
         const value = this.searchTableValue;
         this.searchedList[value]=true
@@ -564,9 +679,8 @@ export default {
            this.$message.info('此查询可能较慢，请耐心等待',1);
             this.searching = true
             this.showUpstreamPending=true
-            Promise.all([axiosRequst(this.showUpstreamAPI(value))
-                .then(this.dealResponse)
-            ])
+            Promise.all(this.showUpstreamAPI(value)
+              .map(arg=>axiosRequst(arg).then(this.dealResponse) ))
             .then(()=>{
                  this.searching = false
                  this.showUpstreamPending=false
@@ -578,9 +692,9 @@ export default {
             this.$message.info('此查询可能较慢，请耐心等待',1);
             this.showDownstreamPending = true
             this.searching = true
-            Promise.all([axiosRequst(this.showDownstreamAPI(value))
-                .then(this.dealResponse)
-            ]).then(()=>{
+            Promise.all(this.showDownstreamAPI(value).map(arg=>{
+              axiosRequst(arg).then(this.dealResponse)
+            })).then(()=>{
               this.searching = false
               this.showDownstreamPending =false
             })
@@ -589,12 +703,13 @@ export default {
     ,showPath(value1,value2){
       if(value1&&value2){
         this.showPathPending = true
-        Promise.all([axiosRequst(this.showPathAPI(value1,value2))
-                .then(this.dealResponse)
-        ]).then(()=>{
+        Promise.all(
+           this.showPathAPI(value1,value2).map((arg)=>{
+                    axiosRequst(arg).then(this.dealResponse)
+           })
+        ).then(()=>{
           this.showPathPending=false
         })
-
       }
     }
     ,showKeyPath(value,keyPathOnly){
