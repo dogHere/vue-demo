@@ -62,13 +62,13 @@
             </template>
               
             <template slot="status">
-                <div style="height:400%">
+                
                   <a-table :columns="toKeys(currentShowData)" :dataSource="currentShowData===null?[]:toValue(currentShowData)"
-                    :scroll="{ x: 1500 }" :pagination="false" 
+                    :scroll="{ x:1500 ,y: 150 }" :pagination="false" style="word-wrap:break-word;word-break:break-all"
                     
                   >
                   </a-table>
-                </div>
+                
 
        
 
@@ -278,7 +278,6 @@ export default {
   ,
   methods: {
     reset(){
-
         this.$refs.commonGraph.clearAll()
         this.registerV={}
         this.registerVCnt=0;
@@ -325,7 +324,7 @@ export default {
         Object.keys(obj).forEach(k=>{
             Object.keys(obj[k]).forEach(tk=>{
               if(!has[tk]){
-                 coloms.push({title:tk,dataIndex:tk})
+                 coloms.push({title:tk,dataIndex:tk,width:150})
                  has[tk]=true;
               }else{
 

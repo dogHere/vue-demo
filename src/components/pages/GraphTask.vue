@@ -232,7 +232,6 @@ export default {
       }
       console.log("pDateHandle changed",changed)
       if(changed){
-        console.log("reset pDate",this.pDate )
         this.searchGroups =value
         console.log("reset pDate  this.searchGroups",this.searchGroups )
         this.$refs.GraphView.reset()
