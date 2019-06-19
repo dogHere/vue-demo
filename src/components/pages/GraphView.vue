@@ -62,12 +62,13 @@
             </template>
               
             <template slot="status">
-                <div v-draggable="draggableValue" style="z-index:3;background: white"  class="draggableTarget" title="可拖动">
+                <div v-draggable="draggableValue" style="z-index:3;background: white;"  class="draggableTarget" title="可拖动">
                     <div :ref="handleId" >
                       <div   alt="move" style="user-select: text">
-                        <a-table :columns="toKeys(currentShowData)" :dataSource="currentShowData===null?[]:toValue(currentShowData)"
-                          :scroll="{ x:1500  }" :pagination="false" style="word-wrap:break-word;word-break:break-all;"
+                        <a-table :title="helloWorld" :columns="toKeys(currentShowData)" :dataSource="currentShowData===null?[]:toValue(currentShowData)"
+                          :scroll="{ x:300,y:800}" :pagination="false" style="word-wrap:break-word;word-break:breal-all;" :showHeader="false"
                         >
+                         
                         </a-table>
                         </div>
                     </div>    
@@ -282,7 +283,8 @@ export default {
         showUpstreamPending:false,
         hmSelect:false,
         handleId: "handle-id",
-        draggableValue: { }
+        draggableValue: { },
+        tableDirection:"|",
 
 
 
@@ -317,6 +319,8 @@ export default {
 
 
   ,
+  helloWorld(){}
+  ,
   takeFirst(obj){
     if(obj){
       let res = obj[Object.keys(obj)[0]]
@@ -324,8 +328,48 @@ export default {
     }
   }
   ,
-  toValue(obj){
+  toValueUpRight(obj){
+    if(!obj){
+      return [];
+    }
+      let arr=[]
       if(obj){
+        for(let j = 0;j<Object.keys(obj).length;j++){
+          let props = obj[Object.keys(obj)[j]];
+          
+          for(let i=0;i<Object.keys(props).length;i++){
+            let title = Object.keys(props)[i];
+            
+            
+            if(!arr[i]){
+                arr[i]={key:title}
+            }            
+            arr[i]['value'+j] = props[Object.keys(props)[i]];            
+          }
+        }
+
+      }
+      return arr;
+  }
+  ,
+  toKeyUpRight(obj){
+    if(!obj)
+      return [];
+    let arr=[]
+    arr.push({title:'key',dataIndex:'key'})
+
+    for(let i = 0;i<Object.keys(obj).length;i++){
+        arr.push({title:"value"+i,dataIndex:"value"+i,width:1300 })       
+    }
+    return arr;
+  }
+  ,
+  toValue(obj){
+    
+      if(obj){
+        if(this.tableDirection==='|'){
+          return this.toValueUpRight(obj)
+        }
         let arr=[]
         Object.keys(obj).forEach(k=>{
           
@@ -336,6 +380,9 @@ export default {
   }
   ,
     toKeys(obj){
+      if(this.tableDirection==='|'){
+        return this.toKeyUpRight(obj)
+      }
       let has={}
       let coloms = []
       if(obj){
@@ -360,6 +407,7 @@ export default {
         if(!v || !prop){
           return 
         }
+
 
         let p = this.registerProps[v]
         if(!p){
