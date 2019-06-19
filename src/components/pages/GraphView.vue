@@ -17,6 +17,7 @@
                       title="查找"
                       trigger="click"
                       placement="bottomLeft"
+                      v-model="findVisible"
                       
                     >
                 
@@ -285,6 +286,8 @@ export default {
         handleId: "handle-id",
         draggableValue: { },
         tableDirection:"|",
+        findVisible:true,
+       
 
 
 
@@ -359,7 +362,7 @@ export default {
     arr.push({title:'key',dataIndex:'key'})
 
     for(let i = 0;i<Object.keys(obj).length;i++){
-        arr.push({title:"value"+i,dataIndex:"value"+i,width:1300 })       
+        arr.push({title:"value"+i,dataIndex:"value"+i,width:150 })       
     }
     return arr;
   }

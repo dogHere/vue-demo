@@ -162,6 +162,13 @@ function handleNas(t){
   return Math.round(t/60*100)/100+"分钟"
 }
 
+function handleMi(t){
+  if(!t){
+    return "-"
+  }
+  return Math.round(t/60/1000*100)/100+"分钟"
+}
+
 function createDays(){
   let date = new Date();
   let days = [];
@@ -468,6 +475,13 @@ export default {
               "状态":prop["state"],
               "tryNumber":prop["tryNumber"],
               "operator":prop["operator"],
+
+              "query数":prop["queryCnt"],
+              "query实际运行":handleMi(prop["queryRealCost"]),
+              "query提交时长":handleMi(prop["queryInterval"]),
+              "query Pending":handleMi(prop["queryPending"]),
+              "query数据倾斜":handleMi(prop["queryOptimize"]),
+              "query理论运行时长":handleMi(prop["queryEmsCost"]),
               "pDate":group
             }
         })
