@@ -62,13 +62,17 @@
             </template>
               
             <template slot="status">
-                
-                  <a-table :columns="toKeys(currentShowData)" :dataSource="currentShowData===null?[]:toValue(currentShowData)"
-                    :scroll="{ x:1500 ,y: 150 }" :pagination="false" style="word-wrap:break-word;word-break:break-all"
-                    
-                  >
-                  </a-table>
-                
+                <div v-draggable="draggableValue" style="z-index:3;background: white"  class="draggableTarget" title="可拖动">
+                    <div :ref="handleId" >
+                      <div   alt="move" style="user-select: text">
+                        <a-table :columns="toKeys(currentShowData)" :dataSource="currentShowData===null?[]:toValue(currentShowData)"
+                          :scroll="{ x:1500  }" :pagination="false" style="word-wrap:break-word;word-break:break-all;"
+                        >
+                        </a-table>
+                        </div>
+                    </div>    
+                </div>
+              
 
        
 
@@ -96,12 +100,17 @@
 import CommonGraph from '../common/CommonGraph'
 import {axiosRequst,setErrorHandle} from '../../util/httpUtils'
 import _ from 'lodash'
+// import draggable from 'vuedraggable'
+  import { Draggable } from 'draggable-vue-directive'
+
+
 
 console.log("setErrorHandle",setErrorHandle)
 export default {
   name: 'GraphView',
   components: {
-    CommonGraph
+    CommonGraph,
+    Draggable
   },
   props:{
       
@@ -243,6 +252,14 @@ export default {
       })
   }
   ,
+  mounted() {
+    this.draggableValue.handle = this.$refs[this.handleId];
+  }
+  ,
+  directives: {
+      Draggable,
+  },
+  
   data(){
     return {
         registerVGroup:{},
@@ -264,6 +281,8 @@ export default {
         showDownstreamPending:false,
         showUpstreamPending:false,
         hmSelect:false,
+        handleId: "handle-id",
+        draggableValue: { }
 
 
 
@@ -596,17 +615,17 @@ export default {
           }
         })
 
-        // this.$refs.commonGraph.getNetwork().on('showPopup',(v)=>{
-        //     if(v){
-        //       this.currentHover = v;
+        this.$refs.commonGraph.getNetwork().on('showPopup',(v)=>{
+            if(v){
+              this.currentHover = v;
                 
-        //       const prop = this.registerProps[v];
+              const prop = this.registerProps[v];
                 
-        //       let nv = this.normalStr2Obj(v)
+              let nv = this.normalStr2Obj(v)
 
-        //       this.currentShowData = this.descProps(this.convertToProps(nv,prop))
-        //     }
-        // })
+              this.currentShowData = this.descProps(this.convertToProps(nv,prop))
+            }
+        })
     } ,  
      dealResponse(data,mode,focus){
        console.log("dealResponse",data)
@@ -782,6 +801,9 @@ export default {
       color: #000;
     }
     
+  }
+  .draggableTarget:hover{
+
   }
 }
 
