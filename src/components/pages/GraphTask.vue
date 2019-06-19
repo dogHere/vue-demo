@@ -10,6 +10,7 @@
            :showKeyPathAPI="showKeyPathAPI"
            :handleStr2Obj="handleStr2Obj"
            :handleDescProps="handleDescProps"
+           :handleDescPropsE="handleDescPropsE"
            :searchTableData="searchTableData"
            :handle2StdV="handle2StdV"
            :handle2StdE="handle2StdE"
@@ -486,6 +487,23 @@ export default {
             }
         })
         return res;
+    },
+      handleDescPropsE:(props)=>{
+          let res = {}
+          Object.keys(props).forEach(group=>{
+              let prop = props[group]
+              res[group] = {
+                "上游ClusterId":prop["up_clusterId"],
+                "上游DagId":prop["up_dagId"],
+                "上游TaskId":prop["up_taskId"],
+                "下游ClusterId":prop["down_clusterId"],
+                "下游DagId":prop["down_dagId"],
+                "下游TaskId":prop["down_taskId"],
+                "pDate":prop["pDate"],
+                "调度间隔":handleMi(prop["interval"]),
+              }
+          })
+          return res;
     },
 
   },

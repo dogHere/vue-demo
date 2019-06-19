@@ -72,7 +72,8 @@ let options = {
       forceDirection: 'horizontal',
       roundness: 0.4
     },
-    arrows: { to: true }
+    arrows: { to: true },
+    hoverWidth: 5,
   },
   manipulation: {
     enabled: false

@@ -203,6 +203,14 @@ export default {
           }
       },
       
+      handleDescPropsE:{
+          type:[Function],
+          default:(prop)=>{
+              return {
+                
+             }
+          }
+      },
       searchTableData:{
           type:[Array],
           default: ()=>{
@@ -272,10 +280,12 @@ export default {
         lookupList:{},
         // searchTableValue:null,
         registerProps:{},
+        registerEProps:{},
         searchTarget: (this.searchGroups.length>1)?'keyPathOnly':'keyPath',
         currentSelected:null,
         currentClicked:null,
         currentHover:null,
+        currentHoverE:null,
         currentShowData:null,
         setErrorHandle:setErrorHandle,
         showKeyPathPending:false,
@@ -465,11 +475,25 @@ export default {
     return this.handleDescProps(prop)
   }
   ,
+  descPropsE(prop){
+    return this.handleDescPropsE(prop)
+  }
+  ,
   /**
   这个的v，可能没有group
    */
-  convertToProps(v,prop){
-    const ob = this.str2Obj(v);
+  convertToProps(v,prop,origin){
+    let ob = null;
+    if(!v){
+      ob = {}
+    }else{
+      if(!origin){
+         ob = this.str2Obj(v);
+      }else{
+         ob = v;
+      }
+      
+    }
     let res = {}
 
     if(prop){
@@ -605,7 +629,18 @@ export default {
             this.registerProps[prop][data.args.groupId] = props[prop];
           })
         }
-    } ,
+    } 
+    ,registerTheEProps(data){
+        let props = _.get(data,'data.data.propsE')
+        if(props){
+          Object.keys(props).forEach((prop)=>{
+            if(!this.registerEProps[prop]){
+              this.registerEProps[prop]={}
+            }
+            this.registerEProps[prop][data.args.groupId]= props[prop]
+          })
+        }
+    },
     normalStr2Obj(str){
         if(!str){
           return {str:""}
@@ -666,6 +701,43 @@ export default {
           }
         })
 
+        this.$refs.commonGraph.getNetwork().on('hoverEdge',(e)=>{
+            console.log('hoverEdge',e)
+            let edge = e.edge
+            let isUpdated = false;
+            if(edge){
+                
+              const prop = this.registerEProps[edge];
+              if(prop){
+                this.currentHoverE = edge;
+                this.currentHover = edge;
+
+                // let nv = this.normalStr2Obj(v)
+                let pairs = edge.split('->')
+                let upstream = pairs[0];
+                let downstream = pairs[1];
+                
+                let up = this.str2Obj(this.normalStr2Obj(upstream))
+                Object.keys(up).forEach(k=>{
+                  up['up_'+k] = up[k]
+                  up[k]=undefined;
+                })
+                let down = this.str2Obj(this.normalStr2Obj(downstream))
+                Object.keys(down).forEach(k=>{
+                  down['down_'+k] = down[k]
+                  down[k]=undefined;
+                })
+                
+                this.currentShowData = this.descPropsE(this.convertToProps(Object.assign({},up,down),prop,true))
+                isUpdated=true
+              }
+            }
+            if(!isUpdated&&this.currentHoverE){
+              this.currentShowData = null;
+              this.currentHoverE = null;
+            }
+        })
+
         this.$refs.commonGraph.getNetwork().on('showPopup',(v)=>{
             if(v){
               this.currentHover = v;
@@ -677,13 +749,16 @@ export default {
               this.currentShowData = this.descProps(this.convertToProps(nv,prop))
             }
         })
-    } ,  
+    } ,
+      
+    
      dealResponse(data,mode,focus){
        console.log("dealResponse",data)
         if(!mode){
           mode = 'add'
         }
         this.registerTheProps(data)
+        this.registerTheEProps(data)
         this.renderTheGraph(data,mode,focus)
         
         this.$message.info('查询结果已经返回',1);
