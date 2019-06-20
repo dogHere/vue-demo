@@ -73,6 +73,11 @@ export default {
           icon: 'rocket',
           title: 'Task级别血缘-图可视化'
         },
+        {
+          key: 'graph-field',
+          icon: 'cluster',
+          title: '列级别血缘-图可视化'
+        },
         // {
         //   key: 'urls',
         //   icon: 'appstore',

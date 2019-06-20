@@ -3,6 +3,8 @@ import Router from 'vue-router'
 import GraphTable from '../components/pages/GraphTable'
 import GraphTable2 from '../components/pages/GraphTable2'
 import GraphTask from '../components/pages/GraphTask'
+import GraphField from '../components/pages/GraphField'
+
 
 import Graph from '../components/pages/Graph'
 
@@ -41,6 +43,11 @@ export default new Router({
       path: '/graph-task',
       name: 'graph-task',
       component: GraphTask
+    },
+    {
+      path: '/graph-field',
+      name: 'graph-field',
+      component: GraphField
     },
     // {
     //   path: '/graph-task',

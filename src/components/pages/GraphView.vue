@@ -10,7 +10,7 @@
                 <slot name="moreButton"></slot>
                 <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupUpstream" :loading="showUpstreamPending" >显示节点上游</a-button>
                 <a-button class="buttonItem" :disabled="!currentClicked" type="primary" @click="lookupDownstream" :loading="showDownstreamPending" >显示节点下游</a-button>
-                <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupKeyPath" :loading="showKeyPathPending" >显示关键路径</a-button>
+                <a-button class="buttonItem" :disabled="!currentClicked"  type="primary" @click="lookupKeyPath" :loading="showKeyPathPending" v-if="ifShowKeyPath" >显示关键路径</a-button>
                 <a-button class="buttonItem" :disabled="!currentSelected || currentSelected.length<2"  type="primary" @click="lookupPath" :loading="showPathPending" >显示两点之间路径</a-button>
                 <div style="display:'inline-block'">
                     <a-popover
@@ -43,10 +43,10 @@
 
                               
                               <br/>
-                              <a-radio-group :value="computedSearchGroups&&searchTarget"  :defaultValue="searchTarget" @change="searchTargetChange" buttonStyle="solid">
+                              <a-radio-group :value="computedSearchGroups&&searchTarget"  :defaultValue="defaultSearchTarget || searchTarget" @change="searchTargetChange" buttonStyle="solid">
                               
-                                <a-radio-button value="keyPath">关键路径</a-radio-button>
-                                <a-radio-button value="keyPathOnly">关键路径Only</a-radio-button>
+                                <a-radio-button value="keyPath" v-if="ifShowKeyPath">关键路径</a-radio-button>
+                                <a-radio-button value="keyPathOnly" v-if="ifShowKeyPathOnly">关键路径Only</a-radio-button>
 
                                 <a-radio-button value="upstream">上游</a-radio-button>
                                 <a-radio-button value="downstream">下游</a-radio-button>
@@ -115,7 +115,27 @@ export default {
     Draggable
   },
   props:{
-      
+      defaultSearchTarget:{
+        type:[String],
+        default:()=>{
+          return null
+        },
+      }
+      ,
+      ifShowKeyPath:{
+        type:[Boolean],
+        default:()=>{
+          return true
+        }
+      }
+      ,
+      ifShowKeyPathOnly:{
+        type:[Boolean],
+        default:()=>{
+          return true
+        }
+      }
+      ,
       showUpstreamAPI:{
           type:[Function],
 
@@ -281,7 +301,7 @@ export default {
         // searchTableValue:null,
         registerProps:{},
         registerEProps:{},
-        searchTarget: (this.searchGroups.length>1)?'keyPathOnly':'keyPath',
+        searchTarget:  (( this.ifShowKeyPath&&this.ifShowKeyPathOnly&& this.searchGroups.length>1)?'keyPathOnly':'keyPath'),
         currentSelected:null,
         currentClicked:null,
         currentHover:null,
@@ -508,6 +528,12 @@ export default {
               res[group][p]=prop[group][p]
          })
       })
+    }else{
+      if(ob){
+        res[v.groupId]={
+          ... ob
+        }
+      }
     }
     return res;
   }
@@ -579,7 +605,10 @@ export default {
     // if(Object.keys(ob).length>1){
       label+="\n"
       Object.keys(ob).forEach(k=>{
-        label+=k+"\n"
+        if(k){
+           label+=k+"\n"
+        }
+
       })
     // }
 
@@ -800,9 +829,9 @@ export default {
 
         // }
 
-        if(this.searchTarget==="keyPathOnly"){
+        if(this.searchTarget==="keyPathOnly"&&this.ifShowKeyPathOnly){
             this.showKeyPath(value,true)
-        }else if(this.searchTarget==="keyPath"){
+        }else if(this.searchTarget==="keyPath"&&this.ifShowKeyPathOnly){
             this.showKeyPath(value,false)
         }else if(this.searchTarget==="upstream"){
             this.showUpstream(value)
