@@ -20,8 +20,13 @@
                     style="fontSize: 22px" />
             <span>{{ menuItem.title }}</span>
           </router-link>
+
         </a-menu-item>
+<!--
+         <a href="https://rc-data.corp.kuaishou.com/internal/dg/findwhyslow/index/index_keypath_diff.html">关键路径对比</a>
+-->
       </a-menu>
+
     </a-layout-sider>
     <a-layout>
       <a-layout-header style="background: #fff; padding: 0">
@@ -78,11 +83,11 @@ export default {
           icon: 'cluster',
           title: '列级别血缘-图可视化'
         },
-        // {
-        //   key: 'urls',
-        //   icon: 'appstore',
-        //   title: 'url列表'
-        // },
+        {
+          key: 'graph-keypath-diff',
+          icon: 'appstore',
+          title: '关键路径对比'
+        },
         // {
         //   key: 'projects',
         //   icon: 'project',

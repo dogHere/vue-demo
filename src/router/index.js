@@ -49,10 +49,14 @@ export default new Router({
       name: 'graph-field',
       component: GraphField
     },
-    // {
-    //   path: '/graph-task',
-    //   name: 'graph-task',
-    //   component: GraphTask
-    // },
+    {
+      path: '/graph-keypath-diff',
+      name: 'graph-keypath-diff',
+      // redirect:'/internal/dg/findwhyslow/index/index_keypath_diff.html',
+      beforeEnter(to, from, next) {
+        // Put the full page url including the protocol http(s) below
+        window.location = "/internal/dg/findwhyslow/index/index_keypath_diff.html"
+      }
+    },
   ]
 })
