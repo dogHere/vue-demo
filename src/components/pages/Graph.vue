@@ -99,17 +99,66 @@
                 <a-button class="buttonItem"  type="primary" @click="showPath" :disabled="!nowJobIdExists|| !nowSelected || nowSelected.length<2">显示两点间路径</a-button>
                 <div style="display:'inline-block'">
                     <a-popover
-                      title="显示一个点"
+                      title="查找下游任务"
                       trigger="click"
                       placement="bottomLeft"
                       
                     >
                 
-                    <a-button class="buttonItem"  type="primary" :disabled="!nowJobIdExists" > 显示一个点 </a-button>
+                    <a-button class="buttonItem"  type="primary" :disabled="!nowJobIdExists" > 查找下游任务 </a-button>
                         <template slot="content">
-                            <a-input placeholder="clusterId" v-model="inputClusterId"></a-input><br/> <br/>
-                            <a-input placeholder="dagId"    v-model="inputDagId" ></a-input><br/> <br/>
-                            <a-input placeholder="taskId"   v-model="inputTaskId" ></a-input><br/> <br/>
+
+             clusterId<br/>
+             <a-select
+                  showSearch
+                  :value="searchClusterValue"
+                  placeholder="input search text"
+                  style="width: 500px"
+                  :defaultActiveFirstOption="false"
+                  :showArrow="false"
+                  :filterOption="false"
+                  @change="handleChangeCluster" 
+                  @search="handleChangeCluster"
+                  :notFoundContent="null"
+                  
+                >
+                  <a-select-option v-for="d in clusters" :key="d">{{d}}</a-select-option>
+             </a-select>
+              <br/>
+              dagId<br/>
+               <a-select
+                  showSearch
+                  :value="searchDagValue"
+                  placeholder="input search text"
+                  style="width: 500px"
+                  :defaultActiveFirstOption="false"
+                  :showArrow="false"
+                  :filterOption="false"
+                  @change="handleChangeDag" 
+                  @search="handleChangeDag"
+                  :notFoundContent="null"
+                  
+                >
+                  <a-select-option v-for="d in dags" :key="d">{{d}}</a-select-option>
+             </a-select>
+
+              <br/>
+              taskId<br/>
+               <a-select
+                  
+                  :value="searchTaskValue"
+                  placeholder="input search text"
+                  style="width: 500px"
+                  :defaultActiveFirstOption="false"
+                  :showArrow="false"
+                  :filterOption="false"
+                  @change="handleChangeTask"
+                  :notFoundContent="null"
+                  
+                >
+                  <a-select-option v-for="d in tasks" :key="d">{{d}}</a-select-option>
+             </a-select>
+                  <br/> <br/>
                             <a-button icon="search" @click="showV" >Search</a-button>
                         </template>
                   </a-popover>
@@ -213,6 +262,13 @@ export default {
       nowFlushStart:false,
       nowCountDown:null,
       nowJobIdIsInStopQueue:null,
+      searchClusterValue:null,
+      clusters:[],
+      searchDagValue:null,
+      dags:[],
+      searchTaskValue:null,
+      tasks:[],
+
     }
   },
   // watch: {
@@ -229,9 +285,10 @@ export default {
   computed: {
     showVData(){
       return {
-          clusterId: this.inputClusterId,
-          dagId: this.inputDagId,
-          taskId: this.inputTaskId,
+
+          clusterId: this.searchClusterValue,
+          dagId: this.searchDagValue,
+          taskId: this.searchTaskValue,
       }
     },
   },  
@@ -300,12 +357,13 @@ export default {
     }
     ,
     reflushTaskStatus(){
-        // console.log('reflushTaskStatus...')
-        if(this.registerV){
-          Object.keys(this.registerV).forEach(v=>{
-            this.showV(this.str2Task(v),true)
-          })
-        }
+      
+      if(this.registerV){
+        Object.keys(this.registerV).forEach(v=>{
+          this.showV(this.str2Task(v),true)
+        })
+      }
+      
     }
     ,
     setNowJobId(data){
@@ -628,6 +686,119 @@ export default {
       })
     }
     ,
+
+
+    
+
+
+    handleChangeCluster(value){
+      console.log('handleChangeCluster',value)
+      if(value){
+        this.searchClusterValue = value;
+        this.searchDagValue = null  
+        this.searchTaskValue = null 
+        this.searchCluster(value,()=>{
+          this.handleChangeDag(null)
+        })
+      }
+    },
+
+    searchCluster(clusterId,thenDo){
+      if(this.nowJobId&&clusterId){
+        axiosRequst({
+                path: '/data/back/search/job/clusterId',
+                params: {
+                  jobId:this.nowJobId,
+                  clusterId:clusterId
+                },
+                type:'get'
+        }).then(data=>{
+            let clusters =  _.get(data,'data.data');
+            if(clusters){
+              this.clusters = clusters;
+              if(this.searchClusterValue&&thenDo){
+                thenDo()
+              }
+            }
+        })
+      }
+    },
+
+
+    
+
+   handleChangeDag(value){
+     console.log('handleChangeDag',value)
+    //  if(value){
+      this.searchDagValue = value 
+      this.searchTaskValue = null 
+      this.searchDag(this.searchDagValue,()=>{
+        this.searchTask()
+      })
+    //  }
+  }
+    ,
+    searchDag(dagId,thenDo){
+      let searchDag = null;
+      if(dagId){
+          searchDag = dagId;
+      }
+      if(this.nowJobId&&this.searchClusterValue){
+        axiosRequst({
+                path: '/data/back/search/job/clusterId/dagId',
+                params: {
+                  jobId:this.nowJobId,
+                  
+                  clusterId:this.searchClusterValue,
+                  dagId:searchDag
+                },
+                type:'get'
+        }).then(data=>{
+            let dags =  _.get(data,'data.data');
+            if(dags){
+              this.dags = dags;
+              if(thenDo){
+                  thenDo()
+              }
+            }
+        })
+      }
+    }
+
+    ,
+    searchTask(){
+      
+      if(this.nowJobId&&this.searchClusterValue&&this.searchDagValue){
+        axiosRequst({
+                path: '/data/back/search/job/clusterId/dagId/taskId',
+                params: {
+                  jobId:this.nowJobId,
+                  
+                  clusterId:this.searchClusterValue,
+                  dagId:this.searchDagValue,
+                },
+                type:'get'
+        }).then(data=>{
+            let tasks =  _.get(data,'data.data');
+            if(tasks){
+              this.tasks = tasks;
+
+            }
+        })
+      }
+    }
+    ,
+
+   handleChangeTask(value){
+     console.log('handleChangeTask',value)
+    //  if(value){
+      this.searchTaskValue = value 
+      this.searchTask()
+      
+    //  }
+  }
+    ,
+
     showAll(){
       if(this.nowJobId){
         axiosRequst({
@@ -740,12 +911,15 @@ export default {
     },
     showV(showVData,focus){
       let ids = null;
+      let finalCocus = null;
       if(showVData&&showVData.clusterId){
         ids = showVData
+        finalCocus = focus;
       }else{
         ids = this.showVData
+        finalCocus = false;
       }
-      // console.log(ids,'showVData')
+      console.log(ids,'showVData','finalCocus',finalCocus)
       const {clusterId,dagId,taskId} = ids;
       if(this.nowJobId  && clusterId && dagId && taskId ){
         axiosRequst({
@@ -756,7 +930,7 @@ export default {
                 },
                 type:'post',
                 
-        }).then((data)=>this.dealResponse(data,null,null,focus))
+        }).then((data)=>this.dealResponse(data,null,null,finalCocus))
       }
     },
     startV(){
