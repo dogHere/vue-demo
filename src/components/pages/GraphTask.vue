@@ -469,6 +469,7 @@ export default {
               "dagId":prop["dagId"],
               "taskId":prop["taskId"],
               "关键路径":prop["keyPath"],
+              "运行方式":prop["runType"],
               "executionDate":handleUnixTime(prop["executionDate"]),
               "开始时间":handleUnixTime(prop["startDate"]),
               "结束时间":handleUnixTime(prop["endDate"]),

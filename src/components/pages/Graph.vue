@@ -145,7 +145,7 @@
               <br/>
               taskId<br/>
                <a-select
-                  
+                  showSearch
                   :value="searchTaskValue"
                   placeholder="input search text"
                   style="width: 500px"
@@ -425,6 +425,9 @@ export default {
         if(key === 'sourceTaskId'){
           return true
         }    
+        if(key === 'reRunId'){
+          return true
+        }  
         return false
         
     }
@@ -532,6 +535,8 @@ export default {
                 res['dagId'] = task[t];
             }else if(t === 'sourceTaskId'){
                 res['taskId'] = task[t];
+            }else if(t === 'reRunId'){
+                res['reRunId'] = task[t];
             }
         }
       })
@@ -655,30 +660,30 @@ export default {
         let graphRoot = _.get(data,'data.data.graph');
         if(graphRoot&&graphRoot.v&&graphRoot.v.length>0){
           this.updateThisJobIdStatus(true)
-          axiosRequst({
-                        path: '/data/back/edit/job/show/running',
-                        params: {
-                          jobId:this.nowJobId,
-                        },
-                        type:'post'
-          }).then(data=>{
-              this.registerTheTasks(data)
-              this.renderTheGraph(data)
+          // axiosRequst({
+          //               path: '/data/back/edit/job/show/running',
+          //               params: {
+          //                 jobId:this.nowJobId,
+          //               },
+          //               type:'post'
+          // }).then(data=>{
+          //     this.registerTheTasks(data)
+          //     this.renderTheGraph(data)
 
-              let graph = _.get(data,'data.data.graph');
+          //     let graph = _.get(data,'data.data.graph');
 
-              if(graph&&graph.v){
+          //     if(graph&&graph.v){
                  
-                 graph.v.forEach(sv=>{
-                   graphRoot.v.forEach(rootV=>{
-                      this.showPath([this.str2Task(sv),this.str2Task(rootV)],()=>{
-                        this.showDownstream(this.str2Task(sv))
-                      })
+          //        graph.v.forEach(sv=>{
+          //          graphRoot.v.forEach(rootV=>{
+          //             this.showPath([this.str2Task(sv),this.str2Task(rootV)],()=>{
+          //               this.showDownstream(this.str2Task(sv))
+          //             })
                       
-                   })
-                 })
-              }
-          })    
+          //          })
+          //        })
+          //     }
+          // })    
         }else{
             this.updateThisJobIdStatus(graphRoot&&graphRoot.v&&graphRoot.v.length>0)
         }
@@ -815,7 +820,8 @@ export default {
         axiosRequst({
                 path: '/data/back/edit/job/show/root',
                 params: {
-                  jobId:this.nowJobId
+                  jobId:this.nowJobId,
+                  rootOnly:true,
                 },
                 type:'post'
         }).then(this.dealResponse)
