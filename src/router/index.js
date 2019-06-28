@@ -5,6 +5,8 @@ import GraphTable2 from '../components/pages/GraphTable2'
 import GraphTask from '../components/pages/GraphTask'
 import GraphField from '../components/pages/GraphField'
 
+import TransformSql from '../components/pages/TransformSql'
+
 
 import Graph from '../components/pages/Graph'
 
@@ -49,6 +51,13 @@ export default new Router({
       name: 'graph-field',
       component: GraphField
     },
+
+    {
+      path: '/transform-sql',
+      name: 'transform-sql',
+      component: GraphField
+    },
+
     {
       path: '/graph-keypath-diff',
       name: 'graph-keypath-diff',

@@ -13,6 +13,11 @@ module.exports = {
                 target: 'http://127.0.0.1:8099',
                 changeOrigin: true,
                 ws: false
+            },
+            '/internal/dg/transformsql': {
+                target: 'http://127.0.0.1:8098',
+                changeOrigin: true,
+                ws: false
             }
         }
     }

@@ -87,7 +87,18 @@
                       -->   
                      <a-icon  class="iconItem"  @click="showNotRunningTop" :disabled="!nowJobIdExists" :style="!nowJobIdExists?'color: #d9d9d9;cursor: not-allowed;':'color: #cb4eb3;'"  type="meh"    ></a-icon>
 
-                </a-tooltip>       
+                </a-tooltip>  
+
+
+                               <a-tooltip placement="topLeft" >
+                      <template slot="title">
+                        <span>显示最末叶节点</span>
+                      </template>
+                      
+                     <a-icon  class="iconItem"  @click="showEnfLeaf" :disabled="!nowJobIdExists" :style="!nowJobIdExists?'color: #d9d9d9;cursor: not-allowed;':'color: #cb4eb3;'"  type="fork"    ></a-icon>
+
+                </a-tooltip>
+
                 <!--         
                 <a-button class="buttonItem"  type="primary" @click="showNotRunningTop" :disabled="!nowJobIdExists">显示未运行最上层</a-button>
                 -->
@@ -349,7 +360,7 @@ export default {
                   this.reflushTotalTime=30
               }
               this.reflushTotalTime--
-              this.reflushContent = this.reflushTotalTime + 's后刷新状态'
+              this.reflushContent = (this.reflushTotalTime<10?'0'+this.reflushTotalTime:this.reflushTotalTime) + 's后刷新状态'
             }
             
         },1100)
@@ -939,6 +950,20 @@ export default {
         }).then((data)=>this.dealResponse(data,null,null,finalCocus))
       }
     },
+
+    showEnfLeaf(){
+      if(this.nowJobId){
+        axiosRequst({
+                path: '/data/back/edit/job/show/endleaf',
+                params: {
+                  jobId:this.nowJobId,
+                },
+                type:'post',
+                
+        }).then((data)=>this.dealResponse(data,null,null,false))
+      }
+    },
+
     startV(){
       if(this.nowJobId&&this.nowClicked){
         axiosRequst({
