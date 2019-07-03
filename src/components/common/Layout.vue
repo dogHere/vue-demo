@@ -22,9 +22,7 @@
           </router-link>
 
         </a-menu-item>
-<!--
-         <a href="https://rc-data.corp.kuaishou.com/internal/dg/findwhyslow/index/index_keypath_diff.html">关键路径对比</a>
--->
+
       </a-menu>
 
     </a-layout-sider>

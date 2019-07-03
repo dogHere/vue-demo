@@ -293,6 +293,13 @@ export default {
   //     }
   //   }
   // },
+  mounted() {
+    if(this.$route.params.jobId){
+      console.log('($route.params.jobId',this.$route.params.jobId)
+      this.setNowJobId(null,this.$route.params.jobId)
+    }  
+  },
+  
   computed: {
     showVData(){
       return {
@@ -370,6 +377,7 @@ export default {
     reflushTaskStatus(){
       
       if(this.registerV){
+        this.queryJobStatus()
         Object.keys(this.registerV).forEach(v=>{
           this.showV(this.str2Task(v),true)
         })
@@ -377,8 +385,8 @@ export default {
       
     }
     ,
-    setNowJobId(data){
-      const jobId=Number.parseInt(data.target.value)
+    setNowJobId(data,outer){
+      const jobId=outer||Number.parseInt(data.target.value)
       this.reset()
       if(jobId){
           this.nowJobId = jobId;
@@ -654,8 +662,10 @@ export default {
               this.nowJobIdStatus = {"当前jobId":this.nowJobId,"状态":"ok"}
               // this.nowJobIdStatus = "当前jobId:"+this.nowJobId;
               this.nowJobIdExists = true;
+              this.queryJobStatus()
               this.countDown()
         }
+        
     },
     initShow(){
       axiosRequst({
@@ -804,6 +814,26 @@ export default {
       }
     }
     ,
+
+    queryJobStatus(){
+      
+      if(this.nowJobId){
+        axiosRequst({
+                path: '/data/back/query/job/status',
+                params: {
+                  jobId:this.nowJobId,
+                
+                },
+                type:'get'
+        }).then(data=>{
+            let status =  _.get(data,'data.data');
+            console.log('queryJobStatus',status)
+            this.nowJobIdStatus=Object.assign(this.nowJobIdStatus,status)
+        })
+      }
+    }
+    ,
+    
 
    handleChangeTask(value){
      console.log('handleChangeTask',value)

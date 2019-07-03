@@ -6,6 +6,8 @@ import GraphTask from '../components/pages/GraphTask'
 import GraphField from '../components/pages/GraphField'
 
 import TransformSql from '../components/pages/TransformSql'
+import RerunTaskTicket from '../components/pages/RerunTaskTicket'
+import RerunTaskStatus from '../components/pages/RerunTaskStatus'
 
 
 import Graph from '../components/pages/Graph'
@@ -14,6 +16,12 @@ Vue.use(Router)
 
 export default new Router({
   routes: [
+    {
+      path: '/graph-rerun/:jobId',
+      name: 'graph-rerun',
+      component: Graph
+    }
+    ,
     {
       path: '/graph-rerun',
       name: 'graph-rerun',
@@ -57,6 +65,25 @@ export default new Router({
       name: 'transform-sql',
       component: GraphField
     },
+    {
+      path:'/rerun-task-ticket',
+      name: 'rerun-task-ticket',
+      component: RerunTaskTicket,
+    }
+    ,
+    {
+      path:'/rerun-task-status',
+      name: 'rerun-task-status',
+      component: RerunTaskStatus,
+    }
+    ,
+    {
+      path:'/rerun-task-status/:jobId',
+      name: 'rerun-task-status',
+      component: RerunTaskStatus,
+    }
+    
+    ,
 
     {
       path: '/graph-keypath-diff',

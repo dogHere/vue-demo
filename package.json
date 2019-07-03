@@ -18,7 +18,9 @@
     "sass-loader": "^7.1.0",
     "vis": "^4.21.0",
     "vue": "^2.6.10",
+    "vue-infinite-scroll": "^2.0.2",
     "vue-router": "^3.0.6",
+    "vue-virtual-scroller": "^1.0.0-rc.2",
     "vuedraggable": "^2.21.0"
   },
   "devDependencies": {
