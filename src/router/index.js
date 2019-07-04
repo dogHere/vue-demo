@@ -82,7 +82,12 @@ export default new Router({
       name: 'rerun-task-status',
       component: RerunTaskStatus,
     }
-    
+    ,
+    {
+      path:'/rerun-task-status/:jobId/:mode',
+      name: 'rerun-task-status',
+      component: RerunTaskStatus,
+    }
     ,
 
     {

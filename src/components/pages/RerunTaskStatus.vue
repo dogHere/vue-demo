@@ -52,12 +52,27 @@
                 <br>
                 <div  v-if="!jobFatherStatus" >无数据，点击右侧搜索按钮，搜索已经提交的级联任务</div>
                 <div v-if="jobFatherStatus">
+                            <p><span class='prop'>当前状态</span>:<font :color="colorId(jobFatherStatus)">{{jobFatherStatus.jobStatus}}</font></p>
                             <p><span class='prop'>clusterId</span>:{{jobFatherStatus.sourceClusterId}}</p>
                             <p><span class='prop'>dagId</span>:{{jobFatherStatus.sourceDagId}}</p>
                             <p><span class='prop'>开始时间</span>:{{jobFatherStatus.execStartDate}}</p>
                             <p><span class='prop'>结束时间</span>:{{jobFatherStatus.execEndDate}}</p>
                             <p><span class='prop'>描述</span>:{{jobFatherStatus.jobReasonDesc}}</p>
-
+                            
+                            <div class="pdiv">
+                              <a-button :disabled="!canRun(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStartJobFather(jobFatherStatus.id)" >开始运行</a-button>
+                              <a-button :disabled="!canStop(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStopJobFather(jobFatherStatus.id)"  >停止运行</a-button>
+                              <a-button :disabled="!canReback(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onExamineJob(jobFatherStatus.id,false,true)">撤回</a-button>
+                              
+                            </div>
+                            <div class="pdiv" v-if="mode==='admin'">
+                              
+                              <a-button :disabled="canRefused(jobFatherStatus.jobStatus)" class="b" type='primary' v-if="mode"  @click="onExamineJob(jobFatherStatus.id,true,true)" >通过</a-button>
+                              
+                              <a-button :disabled="!canRefused(jobFatherStatus.jobStatus)" class="b" type='primary' v-if="mode"  @click="onExamineJob(jobFatherStatus.id,false,true)"  >拒绝</a-button>
+                              
+                            </div>
+                            
                              当前任务的子任务（按照时间线）：
                              <br>
                 </div>
@@ -67,28 +82,43 @@
                       <a-timeline>
                        
                         <a-timeline-item v-for="d in jobStatus" :key="d.id" :color="colorId(d)">
-                            <p><span class='prop'>当前状态</span>:{{d.jobStatus}}</p>
-                            <p><span class='prop'>开始时间</span>:{{d.execStartDate}}</p>
-                            <p><span class='prop'>结束时间</span>:{{d.execEndDate}}</p>
-                           
+                            <div class="pdiv">
+                                <p><span class='prop'>当前状态</span>:{{d.jobStatus}}</p>
+                                <p><span class='prop'>开始时间</span>:{{d.execStartDate}}</p>
+                                <p><span class='prop'>结束时间</span>:{{d.execEndDate}}</p>
                             
-                            <p><span class='prop'>创建时间</span>:{{d.jobCreateTime}}</p>
-                            <p><span class='prop'>完成时间</span>:{{d.jobFinishTime?d.jobFinishTime:'未完成'}}</p>
+                                
+                                <p><span class='prop'>创建时间</span>:{{d.jobCreateTime}}</p>
+                                <p><span class='prop'>完成时间</span>:{{d.jobFinishTime?d.jobFinishTime:'未完成'}}</p>
 
-                            <p><span class='prop'>jobId</span>:{{d.id}}</p>
-                            <div  v-for="(key,value) in subJobStatus[d.id]" :key="key+'-'+value">
-                                    <p><span class='prop'>{{value}}</span>:{{key}}</p>
+                                <p><span class='prop'>jobId</span>:{{d.id}}</p>
+                                <div  v-for="(key,value) in subJobStatus[d.id]" :key="key+'-'+value">
+                                        <p><span class='prop'>{{value}}</span>:{{key}}</p>
+                                </div>
+                                <p>
+                                <a target="_blank" :href="'#/graph-rerun/'+d.id">查看子任务状态</a>
+                                </p>
                             </div>
-                            <p>
-                             <a target="_blank" :href="'#/graph-rerun/'+d.id">查看子任务状态</a>
-                            </p>
+                            <div class="pdiv">
+                              <a-button :disabled="!canRun(d.jobStatus)||!canRunOrStop(d.jobStatus)" class="b" type='primary' >开始运行</a-button>
+                              <a-button :disabled="!canStop(d.jobStatus)||!canRunOrStop(d.jobStatus)" class="b" type='primary' >停止运行</a-button>
+                              
+                            </div>
+                            <div class="pdiv" v-if="mode==='admin'">
+                              
+                              <a-button :disabled="canRefused(d.jobStatus)"  class="b" type='primary' v-if="mode"  @click="onExamineSubJob(d.id,true,false)" >通过</a-button>
+                              
+                              <a-button :disabled="!canRefused(d.jobStatus)"  class="b" type='primary' v-if="mode"  @click="onExamineSubJob(d.id,false,false)">拒绝</a-button>
+                              
+                            </div>
                         </a-timeline-item>
                         
                     </a-timeline>
                 </div>
 
 
-                    注：此页面还在开发中，如果提交任务请联系@ranxianglei 协助提交
+                    注：此页面还在开发中，如果提交任务请联系@ranxianglei 协助提交。
+                    本页面已知未实现：jobId变化后，url里面的jobId跟着变。
 
      </layout>         
 </div>    
@@ -118,13 +148,23 @@ export default {
         searchVisible:false,
         nowCountDown:null,
         reflushTotalTime:30,
+        mode:'normal',
+        showJobStatusDetail:{},
     }
   },
   mounted() {
     if(this.$route.params.jobId){
+      if(this.$route.params.mode===-1||this.$route.params.mode==='-1'){
+          this.mode = 'admin'
+          
+          
+      }
       this.currentJobId = this.$route.params.jobId
       this.queryJobs()
     }  
+  },
+  computed: {
+      
   },
   methods: {
             
@@ -167,11 +207,62 @@ export default {
             return '#f5222d';
          }
          if(jobStatus.jobStatus==="初始化成功"){
+            return '#ffbf00	';
+         }
+         if(jobStatus.jobStatus==="正在运行"){
             return '#52c41a';
+         }
+         if(jobStatus.jobStatus==="待运行"){
+            return '#00ffbf';
          }
          return '#9d8128';
 
      }
+    ,
+    canRunOrStop(jobStatus){
+        
+        if(jobStatus==='待运行'){
+            return true;
+        }
+        if(jobStatus==='初始化成功'){
+            return true;
+        }
+        if(jobStatus==='正在运行'){
+            return true;
+        }
+        return false;
+    }
+    ,
+    canRun(jobStatus){
+        if(jobStatus==='待运行'){
+            return true;
+        }
+        if(jobStatus==='初始化成功'){
+            return true;
+        }
+        return false;
+    }
+    ,
+    canStop(jobStatus){
+        if(jobStatus==='正在运行'){
+            return true;
+        }
+        return false;
+    }
+    ,
+    canRefused(jobStatus){
+        if(jobStatus==='审核失败'){
+            return false;
+        }
+        return true;
+    }
+    ,
+    canReback(jobStatus){
+        if(jobStatus==='等待审批'){
+            return true;
+        }
+        return false;
+    }
     ,
      onJobId(value){
          if(value){
@@ -196,7 +287,8 @@ export default {
      ,queryJobs(){
         window.t = this;
         if(this.currentJobId){
-            this.countDown()
+            this.showJobStatusDetail={}
+            // this.countDown()
 
             axiosRequst({
                     path: '/data/back/show/father',
@@ -222,6 +314,31 @@ export default {
         }
     }
     
+     ,queryJob(jobId){
+        if(jobId){
+
+            axiosRequst({
+                    path: '/data/back/show/job',
+                    params: {
+                    jobId:jobId
+                    },
+                    type:'post'
+            }).then(data=>{
+                let dags =  _.get(data,'data.data');
+                if(dags){
+                   if(this.jobStatus){
+                        for(let i = 0 ;i<this.jobStatus.length;i++){
+                            if(this.jobStatus[i].id===jobId){
+                                this.jobStatus[i]=dags
+                            }
+                        }
+                        this.jobStatus=this.jobStatus.slice()
+                    }
+                   
+                }
+            })
+        }
+    }
     ,queryJobsByDag(dagId){
         if(!dagId){
             return ;
@@ -257,14 +374,153 @@ export default {
             let status =  _.get(data,'data.data');
             if(status){
                this.subJobStatus[jobId]=status
+               this.showJobStatusDetail[jobId]=true;
+            
+               this.jobStatus=this.jobStatus.slice()
             }
             
         })
       }
     }
     ,
-
-
+    onStartJobFather(jobId){
+        this.startJobFather(jobId,()=>{
+            this.startJob(jobId,()=>{
+                this.queryJobs()
+            })
+        })
+    }
+    ,
+    onStopJobFather(jobId){
+        this.stopJobFather(jobId,()=>{
+            this.stopJob(jobId,()=>{
+                this.queryJobs()
+            })
+        })
+    }
+    ,
+    startJob(jobId,thenDo){
+      
+      if(jobId){
+        axiosRequst({
+                path: '/data/back/start/job',
+                params: {
+                  jobId:jobId,
+                },
+                type:'post'
+        }).then(data=>{
+            let status =  _.get(data,'data.data');
+            if(status){
+               this.$message.info("成功开始运行job:"+jobId)
+            }
+            if(thenDo){
+                thenDo()
+            }
+            
+        })
+      }
+    }
+    ,
+    stopJob(jobId,thenDo){
+      
+      if(jobId){
+        axiosRequst({
+                path: '/data/back/stop/job',
+                params: {
+                  jobId:jobId,
+                },
+                type:'post'
+        }).then(data=>{
+            let status =  _.get(data,'data.data');
+            if(status){
+               this.$message.info("正在异步停止job:"+jobId)
+            }
+            if(thenDo){
+                thenDo()
+            }
+            
+        })
+      }
+    }
+    ,
+    startJobFather(jobId,thenDo){
+      
+      if(jobId){
+        axiosRequst({
+                path: '/data/back/start/job/father',
+                params: {
+                  jobId:jobId,
+                },
+                type:'post'
+        }).then(data=>{
+            let status =  _.get(data,'data.data');
+            if(status){
+               this.$message.info("成功开始运行job:"+jobId)
+            }
+            if(thenDo){
+                thenDo()
+            }
+        })
+      }
+    }
+    ,
+    stopJobFather(jobId,thenDo){
+      
+      if(jobId){
+        axiosRequst({
+                path: '/data/back/stop/job/father',
+                params: {
+                  jobId:jobId,
+                },
+                type:'post'
+        }).then(data=>{
+            let status =  _.get(data,'data.data');
+            if(status){
+               this.$message.info("正在异步停止job:"+jobId+'的子任务')
+            }
+            if(thenDo){
+                thenDo()
+            }
+        })
+      }
+    }
+    ,
+    onExamineJob(jobId,isAgree,isFather){
+        this.examineJob(jobId,isAgree,isFather,()=>{
+            this.queryJobs()
+        })
+    }
+   ,
+    onExamineSubJob(jobId,isAgree,isFather){
+        this.examineJob(jobId,isAgree,false,()=>{
+            this.querySubJobStatus(jobId)
+            this.queryJob(jobId)
+        })
+    }
+   ,
+   examineJob(jobId,isAgree,isFather,thenDo){
+      
+      if(jobId){
+        axiosRequst({
+                path: '/data/back/examine/job',
+                params: {
+                  jobId:jobId,
+                  isAgree:isAgree?true:false,
+                  isFather:isFather?true:false,
+                },
+                type:'get'
+        }).then(data=>{
+            let status =  _.get(data,'data.data');
+            if(status){
+               this.$message.info("操作成功")
+            }
+            if(thenDo){
+                thenDo()
+            }
+        })
+      }
+    }
+    ,
   },
 }
 
@@ -290,5 +546,10 @@ export default {
   width: 100%;
   text-align: center;
 }
-
+.pdiv{
+    padding:3px;
+    button{
+        margin:3px;
+    }
+}
 </style>

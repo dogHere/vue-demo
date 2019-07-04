@@ -117,17 +117,18 @@
                         <div class="wrapper" >
                            
                             <a-button type='primary'  @click="onPreview"  >预览</a-button>
-                            <a-button type='primary'  @click="onReset"  >重置</a-button>
+                            <a-button type='primary'  @click="onReset" :disabled="!currentJobId" >重置</a-button>
                             <a-button type='primary'  @click="onSubmit" :disabled="!currentJobId" > <span v-if="!currentJobId">提交</span> <a  v-if="currentJobId" :href="'#/rerun-task-status/'+currentJobId" target="_blank">提交</a></a-button>
 
                         </div>
                 </div>
                 <div v-if="currentJobId">
-                 提交成功，当前jobId: {{currentJobId}} <a target="_blank" :href="'#/graph-rerun/'+currentJobId">查看血缘关系</a>
+                 提交成功，当前jobId: {{currentJobId}} <a target="_blank" :href="'#/graph-rerun/'+currentJobId">查看血缘关系</a>（已知未实现功能：点击【查看血缘关系】跳转到新页面，新页面的任务总数统计为0。）
                 </div>
             </div>
             <br>
                     注：此页面还在开发中，如果提交任务请联系@ranxianglei 协助提交
+                    
 
      </layout>         
 </div>    
