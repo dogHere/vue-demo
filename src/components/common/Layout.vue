@@ -91,11 +91,16 @@ export default {
         //   icon: 'project',
         //   title: '工程'
         // },
-        // {
-        //   key: 'publish',
-        //   icon: 'cluster',
-        //   title: '发布'
-        // }
+        {
+          key: 'rerun-task-ticket',
+          icon: 'cluster',
+          title: '补数据任务提交'
+        },
+        {
+          key: 'rerun-task-status',
+          icon: 'rocket',
+          title: '补数据状态查询',
+        },
       ]
     }
   },
