@@ -109,6 +109,13 @@
                   <a-checkbox @change="ifDownstream" :checked="downstream">同时补下游数据</a-checkbox>
                 <br/>
                 <br/>
+                  切分大小（当补多天数据的时候，可以每N天组成一个dag提交，以提高并发性。<br/>例：补10天数据，切分大小为2天,则会切成5个dag补数任务）
+                  <br/>
+                  <a-select   @change="onSplitValue" :value="splitValue"  style="width: 120px" >
+                        <a-select-option v-for="d in cpDefaultSplitArray" :key="d">{{d}}</a-select-option>
+                  </a-select>
+                <br/>
+                <br/>
                 <div>
                     <a-textarea @change="markup" placeholder="备注（必填，用于说明补数据理由，用于审核）" :autosize="{ minRows: 4, maxRows: 6 }" />
                 </div>
@@ -189,7 +196,9 @@ export default {
  name: 'Graph',
   components: {
       Layout
-  },
+  }
+  ,
+  
   data() {
     return {
          data: [],
@@ -209,6 +218,12 @@ export default {
         markupData:null,
         downstream:true,
         currentJobId:null,
+        cascadeSplitSize:[1,2,3,4,5,6,7,8,9,10],
+        cascadeSplitDefault:[1],
+        normalSplitSize:[5,6,7,8,9,10],
+        normalSplitDefault:[8],
+        splitDisplay:true,
+        splitValue:1,
     }
   },
  
@@ -233,15 +248,32 @@ export default {
             this.isSelectedAll = !this.isSelectedAll 
         }
       }
+    },
+     cpDefaultSplitArray(){
+          return (this.downstream?this.cascadeSplitSize:this.normalSplitSize)
     }
+      
+
   },  
   methods: {
     hi(){
 
     },
+
+    cpDefaultSplit(){
+          return (this.downstream?this.cascadeSplitDefault[0]:this.normalSplitDefault[0])
+    },
+   
+
     ifDownstream(value){
         if(value){
             this.downstream = value.target.checked
+            this.normalSplitSize = this.normalSplitSize.slice()
+            this.cascadeSplitSize = this.cascadeSplitSize.slice()
+            // this.cascadeSplitDefault = []
+            // this.normalSplitDefault = []
+            this.splitValue = this.cpDefaultSplit();
+             
         }
     }
     ,
@@ -366,7 +398,15 @@ export default {
         this.searchTaskValue=null
         this.dags=[]
         this.tasks=[]
-    },
+    }
+    ,
+    onSplitValue(value){
+        if(value){
+            this.splitValue = value
+            console.log('this.splitValue',value)
+        }
+    }
+    ,
     onDelete () {
        
         if(this.selectedRows){
@@ -407,7 +447,8 @@ export default {
             axiosRequst({
                 path: '/data/back/submit/job',
                 params: {
-                  jobId:currentJobId
+                  jobId:currentJobId,
+                  maxRuns:this.splitValue
                 },
                 type:'post',
                
@@ -443,7 +484,8 @@ export default {
                 params: {
                   reasonDesc:this.markupData,
                   downstream:this.downstream?true:false,
-                  editMode:editMode
+                  editMode:editMode,
+                  maxRuns:this.splitValue
                 },
                 type:'post',
                 data:data 
