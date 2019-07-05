@@ -52,6 +52,8 @@
                 <br>
                 <div  v-if="!jobFatherStatus" >无数据，点击右侧搜索按钮，搜索已经提交的级联任务</div>
                 <div v-if="jobFatherStatus">
+                            <p v-if="jobFatherStatus.jobStatus==='未初始化'"><font color="red">任务正在初始化中，页面数据会自动刷新。</font></p>
+
                             <p><span class='prop'>当前状态</span>:<font :color="colorId(jobFatherStatus)">{{jobFatherStatus.jobStatus}}</font></p>
                             <p><span class='prop'>clusterId</span>:{{jobFatherStatus.sourceClusterId}}</p>
                             <p><span class='prop'>dagId</span>:{{jobFatherStatus.sourceDagId}}</p>
@@ -62,12 +64,18 @@
                             <div class="pdiv">
                               <a-button :disabled="!canRun(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStartJobFather(jobFatherStatus.id)" >开始运行</a-button>
                               <a-button :disabled="!canStop(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStopJobFather(jobFatherStatus.id)"  >停止运行</a-button>
+                              
+                
                               <a-button :disabled="!canReback(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onExamineJob(jobFatherStatus.id,false,true)">撤回</a-button>
                               
                             </div>
+                            <div class="pdiv">
+                              <a-checkbox @change="onFatherCore" defaultChecked>作用于核心</a-checkbox>
+                              <a-checkbox @change="onFatherNotCore" >作用于非核心</a-checkbox>
+                            </div>
                             <div class="pdiv" v-if="mode==='admin'">
                               
-                              <a-button :disabled="canRefused(jobFatherStatus.jobStatus)" class="b" type='primary' v-if="mode"  @click="onExamineJob(jobFatherStatus.id,true,true)" >通过</a-button>
+                              <a-button :disabled="!canAgree(jobFatherStatus.jobStatus)" class="b" type='primary' v-if="mode"  @click="onExamineJob(jobFatherStatus.id,true,true)" >通过</a-button>
                               
                               <a-button :disabled="!canRefused(jobFatherStatus.jobStatus)" class="b" type='primary' v-if="mode"  @click="onExamineJob(jobFatherStatus.id,false,true)"  >拒绝</a-button>
                               
@@ -100,13 +108,17 @@
                                 </p>
                             </div>
                             <div class="pdiv">
-                              <a-button :disabled="!canRun(d.jobStatus)||!canRunOrStop(d.jobStatus)" class="b" type='primary' >开始运行</a-button>
-                              <a-button :disabled="!canStop(d.jobStatus)||!canRunOrStop(d.jobStatus)" class="b" type='primary' >停止运行</a-button>
+                              <a-button :disabled="!canRun(d.jobStatus)||!canRunOrStop(d.jobStatus)" class="b" type='primary' @click="onStartJob(d.id)">开始运行</a-button>
+                              <a-button :disabled="!canStop(d.jobStatus)||!canRunOrStop(d.jobStatus)" class="b" type='primary' @click="onStopJob(d.id)">停止运行</a-button>
                               
+                            </div>
+                            <div class="pdiv">
+                              <a-checkbox @change="(e)=>onApplyCore(e,d.id)"    >作用于核心</a-checkbox>
+                              <a-checkbox @change="(e)=>onApplyNotCore(e,d.id)" >作用于非核心</a-checkbox>
                             </div>
                             <div class="pdiv" v-if="mode==='admin'">
                               
-                              <a-button :disabled="canRefused(d.jobStatus)"  class="b" type='primary' v-if="mode"  @click="onExamineSubJob(d.id,true,false)" >通过</a-button>
+                              <a-button :disabled="!canAgree(d.jobStatus)"  class="b" type='primary' v-if="mode"  @click="onExamineSubJob(d.id,true,false)" >通过</a-button>
                               
                               <a-button :disabled="!canRefused(d.jobStatus)"  class="b" type='primary' v-if="mode"  @click="onExamineSubJob(d.id,false,false)">拒绝</a-button>
                               
@@ -150,6 +162,11 @@ export default {
         reflushTotalTime:30,
         mode:'normal',
         showJobStatusDetail:{},
+        fatherCore:true,
+        fatherNotCore:false,
+        applyCore:{},
+        applyNotCore:{}
+        
     }
   },
   mounted() {
@@ -172,7 +189,7 @@ export default {
 
      }
      ,
-
+     
      countDown(){
 
 
@@ -240,11 +257,18 @@ export default {
         if(jobStatus==='初始化成功'){
             return true;
         }
+        if(jobStatus==='正在运行'){
+            return true;
+        }
         return false;
     }
     ,
     canStop(jobStatus){
+        
         if(jobStatus==='正在运行'){
+            return true;
+        }
+        if(jobStatus==='待运行'){
             return true;
         }
         return false;
@@ -257,11 +281,42 @@ export default {
         return true;
     }
     ,
+    canAgree(jobStatus){
+        if(jobStatus==='等待审批'){
+            return true;
+        }
+        if(jobStatus==='审核失败'){
+            return true;
+        }
+        return false;
+    }
+    ,
     canReback(jobStatus){
         if(jobStatus==='等待审批'){
             return true;
         }
         return false;
+    }
+    ,
+    onFatherCore(value){
+        if(value)  this.fatherCore = value.target.checked
+    }
+    ,
+    onFatherNotCore(value){
+        if(value)  this.fatherNotCore = value.target.checked
+    }
+    ,
+    onApplyCore(value,jobId){
+        if(value)  {
+            this.applyCore[jobId] = value.target.checked
+        }
+
+    }
+    ,
+    onApplyNotCore(value,jobId){
+        if(value)  {
+            this.applyNotCore[jobId] = value.target.checked
+        }
     }
     ,
      onJobId(value){
@@ -287,8 +342,7 @@ export default {
      ,queryJobs(){
         window.t = this;
         if(this.currentJobId){
-            this.showJobStatusDetail={}
-            // this.countDown()
+            this.countDown()
 
             axiosRequst({
                     path: '/data/back/show/father',
@@ -306,9 +360,13 @@ export default {
                       } else {
                             return false  
                    }})
-                   this.jobStatus.forEach(job=>{
-                       this.querySubJobStatus(job.id)
+
+                   Promise.all(this.jobStatus.map(job=>{
+                       return this.querySubJobStatus(job.id,false)
+                   })).then(()=>{
+                       this.jobStatus=this.jobStatus.slice()
                    })
+                   
                 }
             })
         }
@@ -332,7 +390,8 @@ export default {
                                 this.jobStatus[i]=dags
                             }
                         }
-                        this.jobStatus=this.jobStatus.slice()
+                        this.jobStatus=this.jobStatus.slice()                        
+                    
                     }
                    
                 }
@@ -360,10 +419,10 @@ export default {
     }
     
     ,
-    querySubJobStatus(jobId){
+    querySubJobStatus(jobId,reflushAll){
       
       if(jobId){
-        axiosRequst({
+        return axiosRequst({
                 path: '/data/back/query/job/status',
                 params: {
                   jobId:jobId,
@@ -374,9 +433,10 @@ export default {
             let status =  _.get(data,'data.data');
             if(status){
                this.subJobStatus[jobId]=status
-               this.showJobStatusDetail[jobId]=true;
-            
-               this.jobStatus=this.jobStatus.slice()
+                if(reflushAll){
+                   this.jobStatus=this.jobStatus.slice()
+                }
+               
             }
             
         })
@@ -399,6 +459,20 @@ export default {
         })
     }
     ,
+    onStartJob(jobId){
+        this.startJob(jobId,()=>{
+            this.querySubJobStatus(jobId,true)
+            this.queryJob(jobId)
+        })
+    }
+    ,
+   onStopJob(jobId){
+        this.stopJob(jobId,()=>{
+            this.querySubJobStatus(jobId,true)
+            this.queryJob(jobId)
+        })
+    }
+    ,
     startJob(jobId,thenDo){
       
       if(jobId){
@@ -406,6 +480,7 @@ export default {
                 path: '/data/back/start/job',
                 params: {
                   jobId:jobId,
+                  isCore:(this.applyCore[jobId]&&this.applyNotCore[jobId])?null:((!this.applyCore[jobId]&&!this.applyNotCore[jobId])?null: (this.applyCore[jobId]?true:false))
                 },
                 type:'post'
         }).then(data=>{
@@ -428,6 +503,7 @@ export default {
                 path: '/data/back/stop/job',
                 params: {
                   jobId:jobId,
+                  isCore:(this.applyCore[jobId]&&this.applyNotCore[jobId])?null:((!this.applyCore[jobId]&&!this.applyNotCore[jobId])?null: (this.applyCore[jobId]?true:false))
                 },
                 type:'post'
         }).then(data=>{
@@ -450,6 +526,7 @@ export default {
                 path: '/data/back/start/job/father',
                 params: {
                   jobId:jobId,
+                  isCore:(this.fatherCore&&this.fatherNotCore)?null:((!this.fatherCore&&!this.fatherNotCore)?null: (this.fatherCore?true:false))
                 },
                 type:'post'
         }).then(data=>{
@@ -471,6 +548,8 @@ export default {
                 path: '/data/back/stop/job/father',
                 params: {
                   jobId:jobId,
+                  isCore:(this.fatherCore&&this.fatherNotCore)?null:((!this.fatherCore&&!this.fatherNotCore)?null: (this.fatherCore?true:false))
+
                 },
                 type:'post'
         }).then(data=>{
@@ -493,7 +572,7 @@ export default {
    ,
     onExamineSubJob(jobId,isAgree,isFather){
         this.examineJob(jobId,isAgree,false,()=>{
-            this.querySubJobStatus(jobId)
+            this.querySubJobStatus(jobId,true)
             this.queryJob(jobId)
         })
     }
