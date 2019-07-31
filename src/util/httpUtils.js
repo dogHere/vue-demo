@@ -2,7 +2,11 @@
 import axios from 'axios';
 
 let errorHandle;
-
+function ssoURL() {
+  const returnUrl = `http://${window.location.host}/data-corp/callback?redirect=${encodeURIComponent(window.location.href)}`;
+  const ssoLoginUrl = `https://sso.corp.kuaishou.com/?service=${encodeURIComponent(returnUrl)}`;
+  return ssoLoginUrl;
+}
 function axiosRequst(options) {
     const { type = 'get', path, params, data } = options;
   
@@ -12,29 +16,26 @@ function axiosRequst(options) {
     if (arg) {
       url = `${url}?${arg}`;
     }
+    let ajaxPromise;
+
     // console.log("axiosRequst to ",url);
     if (type === 'get') {
-      return  axios.get(url).catch(err=>{
-        console.log(err)
-        if(errorHandle){
-          errorHandle(err)
-        }
-      }).then(response=>{
-        response.args = options
-        return response
-      });
+      ajaxPromise = axios.get(url)
     }else{
-      return  axios.post(url,data)
-      .catch(err=>{
-        console.log(err)
-        if(errorHandle){
-          errorHandle(err)
-        }
-      }).then(response=>{
-        response.args = options
-        return response
-      });
+      ajaxPromise = axios.post(url,data)
     }
+    return ajaxPromise.catch(err=>{
+      if (+err.response.status === 401) {
+        window.location.href = ssoURL();
+      }
+      console.log(err);
+      if(errorHandle){
+        errorHandle(err)
+      }
+    }).then(response=>{
+      response.args = options
+      return response
+    });
   }
   
 function convertToArgs(arg) {

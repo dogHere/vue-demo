@@ -62,8 +62,8 @@
                             <p><span class='prop'>描述</span>:{{jobFatherStatus.jobReasonDesc}}</p>
                             
                             <div class="pdiv">
-                              <a-button :disabled="!canRun(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStartJobFather(jobFatherStatus.id)" >开始运行</a-button>
-                              <a-button :disabled="!canStop(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStopJobFather(jobFatherStatus.id)"  >停止运行</a-button>
+                              <a-button :disabled="!canRun(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStartJobFather(jobFatherStatus.id)" >一键开始运行全部</a-button>
+                              <a-button :disabled="!canStop(jobFatherStatus.jobStatus)||!canRunOrStop(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onStopJobFather(jobFatherStatus.id)"  >一键停止运行全部</a-button>
                               
                 
                               <a-button :disabled="!canReback(jobFatherStatus.jobStatus)" class="b" type='primary' @click="onExamineJob(jobFatherStatus.id,false,true)">撤回</a-button>
@@ -71,7 +71,7 @@
                             </div>
                             <div class="pdiv">
                               <a-checkbox @change="onFatherCore" defaultChecked>作用于核心</a-checkbox>
-                              <a-checkbox @change="onFatherNotCore" >作用于非核心</a-checkbox>
+                              <a-checkbox @change="onFatherNotCore" defaultChecked >作用于非核心</a-checkbox>
                             </div>
                             <div class="pdiv" v-if="mode==='admin'">
                               
@@ -80,8 +80,9 @@
                               <a-button :disabled="!canRefused(jobFatherStatus.jobStatus)" class="b" type='primary' v-if="mode"  @click="onExamineJob(jobFatherStatus.id,false,true)"  >拒绝</a-button>
                               
                             </div>
-                            
-                             当前任务的子任务（按照时间线）：
+                            <hr/>
+                             <p><font color='red'>查看日志或上下游关系，请点击下方【查看子任务状态】</font></p>
+                             <span class='prop'>当前任务的子任务（按照时间线）</span>：
                              <br>
                 </div>
                 <br>
@@ -163,7 +164,7 @@ export default {
         mode:'normal',
         showJobStatusDetail:{},
         fatherCore:true,
-        fatherNotCore:false,
+        fatherNotCore:true,
         applyCore:{},
         applyNotCore:{}
         

@@ -2,6 +2,7 @@
 <div id="root" >
     <layout page-header="级联补数-任务提交"
             active-item="rerun-task-ticket">
+            点击添加，指定哪些dag任务需要补数据。
             <div style="width:60%;">
                 <div>
                     <a-table :columns="columns"
@@ -24,13 +25,15 @@
                                     trigger="click"
                                     placement="bottomLeft"
                                     >
+                                    
                                         <a-button class="buttonItem"  type="primary"  > 添加 </a-button>
                                         <template slot="content">
                                         
+                                         
                                             clusterId
                                             <br/>
                                             <a-select
-                                                showSearch
+                                                
                                                 :value="searchClusterValue"
                                                 placeholder="input search text"
                                                 style="width: 500px"
@@ -63,10 +66,12 @@
                                                 <a-select-option v-for="d in dags" :key="d">{{d}}</a-select-option>
                                             </a-select>
                                             <br/>
-                                            taskId 
+                                            taskId (选填，如果补下游数据，建议填写taskId)。
+                                            
+                                             
                                             <br/>
                                             <a-select
-                                                showSearch
+                                                
                                                 :value="searchTaskValue"
                                                 placeholder="input search text"
                                                 style="width: 500px"
@@ -109,7 +114,7 @@
                   <a-checkbox @change="ifDownstream" :checked="downstream">同时补下游数据</a-checkbox>
                 <br/>
                 <br/>
-                  切分大小（当补多天数据的时候，可以每N天组成一个dag提交，以提高并发性。<br/>例：补10天数据，切分大小为2天,则会切成5个dag补数任务）
+                  切分大小（不懂可以默认。当补多天数据的时候，可以每N天组成一个dag提交，以提高并发性。<br/>例：补10天数据，切分大小为2天,则会切成5个dag补数任务）
                   <br/>
                   <a-select   @change="onSplitValue" :value="splitValue"  style="width: 120px" >
                         <a-select-option v-for="d in cpDefaultSplitArray" :key="d">{{d}}</a-select-option>
@@ -134,7 +139,8 @@
                 </div>
             </div>
             <br>
-                    注：此页面还在开发中，如果提交任务请联系@ranxianglei 协助提交
+                    注：任务提交后把审核链接发给 @ranxianglei 审核。
+                    
                     
 
      </layout>         
@@ -216,14 +222,14 @@ export default {
         selectedRowKeys:[],
         isSelectedAll:false,
         markupData:null,
-        downstream:true,
+        downstream:false,
         currentJobId:null,
-        cascadeSplitSize:[1,2,3,4,5,6,7,8,9,10],
+        cascadeSplitSize:[1,2,3,4,5,6,7,8,9,10,15,20,30,40,50,60,70,80,100,200,300,400,500],
         cascadeSplitDefault:[1],
-        normalSplitSize:[5,6,7,8,9,10],
+        normalSplitSize:[5,6,7,8,9,10,15,20,30,40,50,60,70,80,100,200,300,400,500],
         normalSplitDefault:[8],
         splitDisplay:true,
-        splitValue:1,
+        splitValue:8,
     }
   },
  
@@ -369,7 +375,7 @@ export default {
     }
     ,
     addable(){
-        if(this.searchClusterValue&&this.searchDagValue&&this.searchTaskValue){
+        if(this.searchClusterValue&&this.searchDagValue){
             return true;
         }else{
             return false;
@@ -431,6 +437,7 @@ export default {
     }
     ,
     onPreview(){
+        window.t= this 
         if(!this.currentJobId) this.submit()
     }
     ,
@@ -491,21 +498,29 @@ export default {
                 data:data 
         }).then(data=>{
             let d =  _.get(data,'data.data');
-            if(d){
-              console.log(d,'submit');
-              this.currentJobId = d
+            
+            if(d==='null'||!d){
+                let message =  _.get(data,'data.message');
+                this.$message.error("提交失败："+message)
+            console.log('fialed ',message)
+            }else{
+                this.currentJobId = d
             }
-        })
+            
+        }).catch((data=>{
+            console.log("error ",data)
+        }))
     }
     ,
     
     
     timer(value){
         console.log('timer',value)
-        
-        this.startExecutionDate=value[0].valueOf()
-        this.stopExecutionDate=value[1].valueOf()
-    }
+        window.t2 = value 
+        this.startExecutionDate= new Date(value[0].toDate().format("yyyy-MM-dd 00:00:00")).valueOf()
+        this.stopExecutionDate=  new Date(value[1].toDate().format("yyyy-MM-dd 00:00:00")).valueOf()
+    },
+    
   },
 }
 

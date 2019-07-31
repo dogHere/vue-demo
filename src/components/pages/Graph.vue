@@ -202,8 +202,9 @@
                               :key="key"
                               class="item">
                             <div class="value"><font style="font-weight: bold">{{ key }}</font>: {{ nowShowData[key] }}</div>
-
                           </div>
+                           <div >日志链接：<a v-if="rerunUrl" :href="rerunUrl" target='_blank'>查看日志(dag生成可能需要5分钟)</a></div>
+
                         </div>
                   </a-card>
 
@@ -331,6 +332,7 @@ export default {
       this.reflushTotalTime = 30
       this.nowFlushStart = false
       this.nowJobIdIsInStopQueue = null
+      this.rerunUrl = null 
     },
     str2Task(str){
       if(str){
@@ -610,7 +612,12 @@ export default {
                     this.nowJobIdIsInStopQueue = false
                 }
                 // console.log('this.nowJobIdIsInStopQueue',this.nowJobIdIsInStopQueue)
-                Object.assign(this.nowShowData,this.convertToStatus(task))
+                let status = this.convertToStatus(task);
+                if(status['reRunId']&&status['reRunId']!='0'&&status['reRunId']!=0){
+                    
+                    this.rerunUrl = 'https://lt-rerun-airflow.corp.kuaishou.com/admin/airflow/tree?dag_id='+status['dagId']+'_'+status['reRunId'];
+                }
+                Object.assign(this.nowShowData,status)
 
               }
             }

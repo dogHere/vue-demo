@@ -2,6 +2,7 @@
   <div id="root">
     <layout page-header="表级别血缘-可视化"
             active-item="graph-table2">
+            
         <GraphView
            ref="GraphView" 
            :showUpstreamAPI="showUpstreamAPI"
@@ -74,7 +75,7 @@
            </template>
            
         </GraphView>
-    </layout>
+  </layout>
   </div>
 </template>
 
