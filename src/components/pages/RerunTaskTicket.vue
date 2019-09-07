@@ -111,8 +111,14 @@
                     <br/>
                     
                 <br/>
-                  <a-checkbox @change="ifDownstream" :checked="downstream">同时补下游数据</a-checkbox>
-                <br/>
+                  <div style="margin: 2px;">
+                    <a-checkbox @change="ifDownstream" :checked="downstream">同时补下游数据</a-checkbox>
+                  </div>
+                  <div style="margin: 2px;">
+                    <a-checkbox  @change="ifHigh" :checked="high">申请高优先级</a-checkbox>
+                    <span style="color: red;">(注意:后台会通知直属领导和资源管理员同时审批)</span>
+                  </div>
+            
                 <br/>
                   切分大小（不懂可以默认。当补多天数据的时候，可以每N天组成一个dag提交，以提高并发性。<br/>例：补10天数据，切分大小为2天,则会切成5个dag补数任务）
                   <br/>
@@ -135,11 +141,10 @@
                         </div>
                 </div>
                 <div v-if="currentJobId">
-                 提交成功，当前jobId: {{currentJobId}} <a target="_blank" :href="'#/graph-rerun/'+currentJobId">查看血缘关系</a>（已知未实现功能：点击【查看血缘关系】跳转到新页面，新页面的任务总数统计为0。）
+                 预览成功，当前jobId: {{currentJobId}} <a target="_blank" :href="'#/graph-rerun/'+currentJobId">查看血缘关系</a>（已知未实现功能：点击【查看血缘关系】跳转到新页面，新页面的任务总数统计为0。）
                 </div>
             </div>
             <br>
-                    注：任务提交后把审核链接发给 @ranxianglei 审核。
                     
                     
 
@@ -223,6 +228,7 @@ export default {
         isSelectedAll:false,
         markupData:null,
         downstream:false,
+        high:false,
         currentJobId:null,
         cascadeSplitSize:[1,2,3,4,5,6,7,8,9,10,15,20,30,40,50,60,70,80,100,200,300,400,500],
         cascadeSplitDefault:[1],
@@ -280,6 +286,14 @@ export default {
             // this.normalSplitDefault = []
             this.splitValue = this.cpDefaultSplit();
              
+        }
+    }
+    ,
+    ifHigh(value){
+        if(value){
+            this.high = value.target.checked
+            console.log(this.high);
+            console.log(this.high)
         }
     }
     ,
@@ -492,7 +506,8 @@ export default {
                   reasonDesc:this.markupData,
                   downstream:this.downstream?true:false,
                   editMode:editMode,
-                  maxRuns:this.splitValue
+                  maxRuns:this.splitValue,
+                  isHigh:this.high
                 },
                 type:'post',
                 data:data 
@@ -561,6 +576,13 @@ export default {
 #graph-wrapper .network{
   width:100%;
   height:80vh;
+}
+
+label {
+    span{
+        padding-left:0px !important;
+        padding-right:0px !important;
+    }
 }
 
 </style>
