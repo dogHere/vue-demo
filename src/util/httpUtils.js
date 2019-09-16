@@ -21,17 +21,17 @@ function axiosRequst(options) {
 
   let url = path;
 
-  let arg = convertToArgs(params);
-  if (arg) {
-    url = `${url}?${arg}`;
-  }
+  // let arg = convertToArgs(params);
+  // if (arg) {
+  //   url = `${url}?${arg}`;
+  // }
   let ajaxPromise;
 
   // console.log("axiosRequst to ",url);
   if (type === 'get') {
-    ajaxPromise = axios.get(url)
+    ajaxPromise = axios.get(url, { params })
   } else {
-    ajaxPromise = axios.post(url, data)
+    ajaxPromise = axios.post(url, data, { params })
   }
   return ajaxPromise.catch(err => {
     if (+err.response.status === 401) {

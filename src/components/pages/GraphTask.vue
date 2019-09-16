@@ -207,7 +207,7 @@ export default {
         searchDagValue:null,
         
         searchTableValue:null,
-        clusters:["airflow_dw2","airflow_abtest","airflow_global","airflow_idp1","airflow_global_prod","airflow_ods","airflow_privacy"],
+        clusters:["airflow_dw2","airflow_abtest","airflow_global","airflow_idp1","airflow_global_prod","airflow_ods","airflow_privacy","airflow_report"],
         searchClusterValue:null,
         pDate:pDateGlobal,
         searchDagPending:false,

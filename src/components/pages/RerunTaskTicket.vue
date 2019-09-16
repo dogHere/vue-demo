@@ -142,6 +142,9 @@
                 </div>
                 <div v-if="currentJobId">
                  预览成功，当前jobId: {{currentJobId}} <a target="_blank" :href="'#/graph-rerun/'+currentJobId">查看血缘关系</a>（已知未实现功能：点击【查看血缘关系】跳转到新页面，新页面的任务总数统计为0。）
+                 <div v-if="mem"> 预估消耗资源：{{mem}} G </div>
+                 <div v-if="!mem"> 预估消耗计算中 ... </div>
+                 <div v-if="vs"> 总节点数：{{vs}} </div>
                 </div>
             </div>
             <br>
@@ -236,9 +239,38 @@ export default {
         normalSplitDefault:[8],
         splitDisplay:true,
         splitValue:8,
+        mem:'',
+        vs:'',
+        
     }
   },
  
+  watch: {
+      currentJobId:{
+          async handler(newValue){
+              if(newValue){
+                const info = await this.computeMemCost(newValue);
+                if(info){
+                    if(info.mem){
+                        this.mem= Math.round(info.mem *100 /86400/1024)/100;
+                    }else{
+                        info.mem='';
+                    }
+                    
+                    this.vs = info.vs;
+                }else{
+                  this.mem = '';
+                  this.vs = '';
+                }
+                
+              }else{
+                  this.mem = '';
+                  this.vs = '';
+              }
+
+          }
+      },
+  },
   computed: {
     rowSelection() {
       const { selectedRowKeys } = this;
@@ -482,6 +514,26 @@ export default {
         }
     }
     ,
+    computeMemCost(currentJobId){
+        if(currentJobId){
+            return axiosRequst({
+                path: '/data/back/compute/cost/mem',
+                params: {
+                  jobId:currentJobId,
+                  startDate:this.startExecutionDate,
+                  endDate:this.stopExecutionDate
+                },
+                type:'post',
+               
+            }).then(data=>{
+                let d =  _.get(data,'data.data');
+                console.log('mem cost', d);
+                return d;
+            })
+        }
+    }
+    ,
+
     submit(edit){
         if(!(this.data&&this.data.length>0&&this.markupData)){
             return 
