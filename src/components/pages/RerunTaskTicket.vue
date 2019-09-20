@@ -101,7 +101,11 @@
                 <br/>
                 开始结束时间
                     <br/>
-                    <a-range-picker @change="timer" >
+                    <a-range-picker
+                     @change="timer" 
+                    :disabledDate="disabledDate"
+                    
+                     >
                         <template slot="dateRender" slot-scope="current">
                             <div class="ant-calendar-date" :style="getCurrentStyle(current)">
                             {{current.date()}}
@@ -158,7 +162,7 @@
 import _ from 'lodash'
 import {axiosRequst} from '../../util/httpUtils'
 import Layout from '../common/Layout'
-
+import moment from 'moment';
 Date.prototype.format = function(fmt) { 
      var o = { 
         "M+" : this.getMonth()+1,                 //月份 
@@ -304,6 +308,10 @@ export default {
 
     },
 
+    disabledDate(current) {
+      // Can not select days before today and today
+      return current && current > moment().endOf('day');
+    },
     cpDefaultSplit(){
           return (this.downstream?this.cascadeSplitDefault[0]:this.normalSplitDefault[0])
     },
